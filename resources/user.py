@@ -1,9 +1,11 @@
 from flask import request, current_app
 from flask_restful import Resource
-from Model import db, User, UserSchema
+from Model import db, User, UserSchema, PrivateUserSchema, PublicUserSchema
 
 users_schema = UserSchema(many=True)
 user_schema = UserSchema()
+private_user_schema = PrivateUserSchema()
+public_user_schema = PublicUserSchema()
 
 class UserResource(Resource):
 	def get(self):
@@ -27,7 +29,7 @@ class UserResource(Resource):
 			return {'message': 'User already exists'}, 400
 
 		if 'username' not in data or 'email' not in data:
-			return {'message': 'Missing field(s)'}, 400
+			return {'message': 'User - missing field(s)'}, 400
 
 		user = User(
 			username=data['username'],
@@ -82,3 +84,108 @@ class UserResource(Resource):
 		result = user_schema.dump(existing_user).data
 
 		return {'status': 'success', 'data': result}, 204
+
+class UserRegisterResource(Resource):
+	def post(self):
+		json_data = request.get_json(force=True)
+		if not json_data:
+			return {'message': 'No input data provided'}, 400
+
+		data, errors = user_schema.load(json_data)
+		if errors:
+			return errors, 422
+
+		# check how this works in docs
+		# what if I want to filter by both username and email?
+		existing_user = User.query.filter_by(username=data['username']).first()
+		if existing_user:
+			return {'message': 'User already exists'}, 400
+
+		if 'username' not in data or 'email' not in data:
+			return {'message': 'User Register - missing field(s)'}, 400
+
+		user = User(
+			username=data['username'],
+			email=data['email']
+			)
+		user.set_password(data['password'])
+
+		db.session.add(user)
+		db.session.commit()
+
+		#result = user_schema.dump(user).data
+		auth_token = user.encode_auth_token(user.id)
+		response = {
+			'status': 'success',
+			'message': 'Successfully registered.',
+			'auth_token': auth_token.decode()
+		}
+
+		return response, 201
+
+class UserLoginResource(Resource):
+	def post(self):
+		json_data = request.get_json(force=True)
+		if not json_data:
+			return {'message': 'No input data provided'}, 400
+
+		data, errors = user_schema.load(json_data)
+		if errors:
+			return errors, 422
+
+		# check how this works in docs
+		# what if I want to filter by both username and email?
+		user = User.query.filter_by(username=data['username']).first()
+		if not user:
+			return {'message': 'User does not exist'}, 400
+
+		if 'username' not in data or 'password' not in data:
+			return {'message': 'User Login - missing field(s)'}, 400
+
+		if not user.check_password(data['password']):
+			return {'message': "Wrong password"}, 400
+
+		auth_token = user.encode_auth_token(user.id)
+		response = {
+			'status': 'success',
+			'message': 'Successfully logged in.',
+			'auth_token': auth_token.decode()
+		}
+
+		return response, 200
+
+class UserProfileResource(Resource):
+	# view another profile
+	def get(self, username):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization header'}, 401
+
+		user = User.query.filter_by(username=username).first()
+		if not user:
+			return {'message': 'User does not exist'}, 400
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+		auth_user = User.query.filter_by(id=resp).first()
+
+		if user.username == auth_user.username:
+			result = user_schema.dump(user).data
+		else:
+			result = private_user_schema.dump(user).data
+		return {'status': 'success', 'data': result}, 200
+		# depends on whether profile is set to private or public
+
+	def put(self):
+		pass
+		# follow/unfollow another user
+
+
+
