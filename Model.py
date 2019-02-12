@@ -12,8 +12,14 @@ db = SQLAlchemy()
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	username = db.Column(db.String(64), index=True, unique=True)
-	email = db.Column(db.String(120), index=True, unique=True)
+	email = db.Column(db.String(120), unique=True)
 	password_hash = db.Column(db.String(128))
+	first_name = db.Column(db.String(64))
+	last_name = db.Column(db.String(64))
+	privacy = db.Column(db.Boolean)
+	created_at = db.Column(db.DateTime)
+	updated_at = db.Column(db.DateTime)
+	profile_pic = db.Column(db.LargeBinary)
 
 	def __repr__(self):
 		return '<User {}>'.format(self.username)
@@ -49,15 +55,43 @@ class User(db.Model):
 		except jwt.InvalidTokenError:
 			return 'Invalid token. Please log in again.'
 
+# master schema
 class UserSchema(ma.Schema):
 	id = fields.Integer()
-	username = fields.String() # check doc: setting required=True/False doesn't seem to do anything
+	username = fields.String()
 	email = fields.String()
 	password = fields.String()
 	password_hash = fields.String()
+	first_name = fields.String()
+	last_name = fields.String()
+	privacy = fields.Boolean()
+	created_at = fields.DateTime()
+	updated_at = fields.DateTime()
+	profile_pic = fields.Raw()
+
+class UserRegisterSchema(ma.Schema):
+	username = fields.String(required=True)
+	email = fields.String(required=True)
+	password = fields.String(required=True)
+
+class UserLoginSchema(ma.Schema):
+	username = fields.String(required=True)
+	password = fields.String(required=True)
+
+class OwnerUserSchema(ma.Schema):
+	username = fields.String()
+	email = fields.String()
+	first_name = fields.String()
+	last_name = fields.String()
+	privacy = fields.Boolean()
+	created_at = fields.DateTime()
+	updated_at = fields.DateTime()
+	profile_pic = fields.Raw()
 
 class PrivateUserSchema(ma.Schema):
 	username = fields.String()
+	first_name = fields.String()
+	last_name = fields.String()
 
 class PublicUserSchema(ma.Schema):
 	username = fields.String()

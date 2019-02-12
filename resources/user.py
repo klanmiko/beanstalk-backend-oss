@@ -1,9 +1,12 @@
 from flask import request, current_app
 from flask_restful import Resource
-from Model import db, User, UserSchema, PrivateUserSchema, PublicUserSchema
+from Model import *
 
 users_schema = UserSchema(many=True)
 user_schema = UserSchema()
+user_register_schema = UserRegisterSchema()
+user_login_schema = UserLoginSchema()
+owner_user_schema = OwnerUserSchema()
 private_user_schema = PrivateUserSchema()
 public_user_schema = PublicUserSchema()
 
@@ -91,7 +94,7 @@ class UserRegisterResource(Resource):
 		if not json_data:
 			return {'message': 'No input data provided'}, 400
 
-		data, errors = user_schema.load(json_data)
+		data, errors = user_register_schema.load(json_data)
 		if errors:
 			return errors, 422
 
@@ -129,7 +132,7 @@ class UserLoginResource(Resource):
 		if not json_data:
 			return {'message': 'No input data provided'}, 400
 
-		data, errors = user_schema.load(json_data)
+		data, errors = user_login_schema.load(json_data)
 		if errors:
 			return errors, 422
 
@@ -155,13 +158,47 @@ class UserLoginResource(Resource):
 		return response, 200
 
 class UserProfileResource(Resource):
-	# view another profile
+	# get info about a profile
 	def get(self, username):
 		auth_token = request.headers.get('Authorization')
 		current_app.logger.debug("auth_token: %s", auth_token)
 
 		if not auth_token:
-			return {'message': 'No Authorization header'}, 401
+			return {'message': 'No Authorization token'}, 401
+
+		user = User.query.filter_by(username=username).first()
+		if not user:
+			return {'message': 'User does not exist'}, 400
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+		auth_user = User.query.filter_by(id=resp).first()
+
+		if user.username == auth_user.username: # viewing your own profile
+			result = owner_user_schema.dump(user).data
+		else: # viewing someone else's profile
+			result = private_user_schema.dump(user).data
+		return {'status': 'success', 'data': result}, 200
+
+	def put(self, username):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		json_data = request.get_json(force=True)
+		if not json_data:
+			return {'message', 'No input data provided'}, 400
+
+		data, errors = owner_user_schema.load(json_data)
+		if errors:
+			return errors, 422
 
 		user = User.query.filter_by(username=username).first()
 		if not user:
@@ -177,15 +214,18 @@ class UserProfileResource(Resource):
 		auth_user = User.query.filter_by(id=resp).first()
 
 		if user.username == auth_user.username:
-			result = user_schema.dump(user).data
+			updatable_fields = ["first_name", "last_name", "privacy"]
+			for field in data:
+				if field in updatable_fields:
+					setattr(user, field, data[field])
+				else:
+					return {'message': 'No permission to update {}'.format(field)}, 401
+			db.session.commit()
+			result = owner_user_schema.dump(user).data
 		else:
-			result = private_user_schema.dump(user).data
-		return {'status': 'success', 'data': result}, 200
-		# depends on whether profile is set to private or public
+			return {'message': 'No permission to update user profile for other users'}, 401
 
-	def put(self):
-		pass
-		# follow/unfollow another user
+		return {'status': 'success', 'data': result}, 204
 
 
 
