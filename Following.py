@@ -4,10 +4,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class Following(db.Model):
-    user_id = db.Column(db.ForeignKey("user.id"), nullable=False)
-    user = db.relationship("User")
-    following_id = db.Column(db.ForeignKey("user.id"), nullable=False)
-    following = db.relationship("User")
+    user_id = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
+    following_id = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
 
 class FollowingAggregation(db.Model):
     user_id = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
