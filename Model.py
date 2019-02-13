@@ -4,6 +4,7 @@ from marshmallow import Schema, fields, pre_load, validate # is this necessary?
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from Following import Following, FollowingAggregation
 import jwt
 
 ma = Marshmallow()
@@ -29,6 +30,23 @@ class User(db.Model):
 
 	def check_password(self, password):
 		return check_password_hash(self.password_hash, password)
+
+	def follow(self, person):
+		following_relation = Following(self.id, person.id)
+		Following.add(following_relation)
+
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == self.id).update({FollowingAggregation.following: FollowingAggregation.following + 1})
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == person.id).update({FollowingAggregation.followers: FollowingAggregation.followers + 1})
+
+		db.session.commit()
+
+	def unfollow(self, person):
+		db.session.query(Following).filter(Following.user_id == self.id, Following.following_id == person.id).delete()
+
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == self.id).update({FollowingAggregation.following: FollowingAggregation.following - 1})
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == person.id).update({FollowingAggregation.followers: FollowingAggregation.followers - 1})
+
+		db.session.commit()
 
 	def encode_auth_token(self, user_id):
 		# try:
