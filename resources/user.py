@@ -1,4 +1,5 @@
 import json
+import datetime
 from flask import request, current_app
 from flask_restful import Resource
 from Model import *
@@ -16,6 +17,35 @@ class UserResource(Resource):
 		users = User.query.all()
 		users = users_schema.dump(users).data
 		return {'status': 'success', 'data': users}, 200
+
+	def post(self):
+		json_data = request.get_json(force=True)
+		if not json_data:
+			return {'message': 'No input data provided'}, 400
+
+		data, errors = user_schema.load(json_data)
+		if errors:
+			return errors, 422
+
+		# check how this works in docs
+		# what if I want to filter by both username and email?
+		existing_user = User.query.filter_by(username=data['username']).first()
+		if existing_user:
+			return {'message': 'User already exists'}, 400
+
+		if 'username' not in data or 'email' not in data:
+			return {'message': 'User - missing field(s)'}, 400
+
+		user = User(
+			username=data['username'],
+			email=data['email']
+			)
+		db.session.add(user)
+		db.session.commit()
+
+		result = user_schema.dump(user).data
+
+		return {'status': 'success', 'data': result}, 201
 
 	def put(self):
 		json_data = request.get_json(force=True)
@@ -79,14 +109,20 @@ class UserRegisterResource(Resource):
 			if existing_user:
 				return {'message': 'User already exists'}, 400
 
-			if 'username' not in data or 'email' not in data:
-				return {'message': 'User Register - missing field(s)'}, 400
+			required_fields = ["username", "email", "password", "first_name", "last_name"]
+			for field in required_fields:
+				if not data[field]:
+					return {'message': 'Fields cannot be empty'}, 400
 
 			user = User(
 				username=data['username'],
 				email=data['email'],
 				first_name=data['first_name'],
-				last_name=data['last_name']
+				last_name=data['last_name'],
+				privacy=False,
+				created_at=datetime.datetime.utcnow(),
+				updated_at=None,
+				profile_pic=None
 				)
 			user.set_password(data['password'])
 
@@ -128,9 +164,11 @@ class UserLoginResource(Resource):
 			return {'message': "Wrong password"}, 400
 
 		auth_token = user.encode_auth_token(user.id)
+		user = user_schema.dump(user).data
 		response = {
 			'status': 'success',
 			'message': 'Successfully logged in.',
+			'data': user,
 			'auth_token': auth_token.decode()
 		}
 
@@ -193,10 +231,13 @@ class UserProfileResource(Resource):
 		auth_user = User.query.filter_by(id=resp).first()
 
 		if user.username == auth_user.username:
-			updatable_fields = ["first_name", "last_name", "privacy"]
+			updatable_fields = ["first_name", "last_name", "privacy", "email"]
+			setattr(user, "updated_at", datetime.datetime.utcnow())
 			for field in data:
-				if field in updatable_fields:
+				if field in updatable_fields and data[field]:
 					setattr(user, field, data[field])
+				elif field in updatable_fields and not data[field]:
+					pass
 				else:
 					return {'message': 'No permission to update {}'.format(field)}, 401
 			db.session.commit()
