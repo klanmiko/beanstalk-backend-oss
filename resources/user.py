@@ -245,7 +245,7 @@ class UserProfileResource(Resource):
 		else:
 			return {'message': 'No permission to update user profile for other users'}, 401
 
-		return {'status': 'success', 'data': result}, 204
+		return {'status': 'success', 'data': result}, 200
 
 
 
