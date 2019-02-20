@@ -9,7 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class Location(db.Model):
-	id = db.Column(db.Integer)
+	id = db.Column(db.Integer, primary_key=True)
 	pid = db.Column(db.ForeignKey('post.id'), nullable=False)
 	gps = db.Column(db.Integer)
 	city = db.Column(db.String(30))
