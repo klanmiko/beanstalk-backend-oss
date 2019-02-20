@@ -2,7 +2,8 @@ import json
 import datetime
 from flask import request, current_app
 from flask_restful import Resource
-from Model import *
+from models.user import *
+from models.follow import *
 
 users_schema = UserSchema(many=True)
 user_schema = UserSchema()
@@ -248,4 +249,90 @@ class UserProfileResource(Resource):
 		return {'status': 'success', 'data': result}, 200
 
 
+class UserFollowResource(Resource):
+	def post():
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
 
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		user = User.query.filter_by(username=username).first()
+		if not user:
+			return {'message': 'User does not exist'}, 400
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+		auth_user = User.query.filter_by(id=resp).first()
+		followRelationship = Follow(resp, user.id, datetime.datetime.now(), 0)
+		try:
+			Follow.add(followRelationship)
+		except Exception as e:
+			print(e)
+			return {'status': 'fail', 'message': 'already following user'}, 401
+
+		aggregation = FollowingAggregation(auth_user.id, 0, 0)
+		try:
+			with db.session.begin_nested():
+				FollowingAggregation.add(aggregation)
+		except Exception as e:
+			print(e)
+		FollowingAggregation.update().values(FollowingAggregation.following + 1).filter(FollowingAggregation.user_id == auth_user.id)
+
+		aggregation = FollowingAggregation(user.id, 0, 0)
+		try:
+			with db.session.begin_nested():
+				FollowingAggregation.add(aggregation)
+		except Exception as e:
+			print(e)
+		FollowingAggregation.update().values(FollowingAggregation.followers + 1).filter(FollowingAggregation.user_id == user.id)
+		try:
+			db.session.commit()
+		except Exception as e:
+			print(e)
+			db.session.rollback()
+			return {'status': 'failure'}, 500
+		
+		return '', 200
+
+	def delete():
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		user = User.query.filter_by(username=username).first()
+		if not user:
+			return {'message': 'User does not exist'}, 400
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+		auth_user = User.query.filter_by(id=resp).first()
+
+		try:
+			Follow.delete().filter(follower_id==auth_user.id, following_uid==user.id)
+		except Exception as e:
+			print(e)
+			return {'status': 'fail', 'message': 'not following user'}, 401
+
+		FollowingAggregation.update().values(FollowingAggregation.following - 1).filter(FollowingAggregation.user_id == auth_user.id)
+		FollowingAggregation.update().values(FollowingAggregation.followers - 1).filter(FollowingAggregation.user_id == user.id)
+		try:
+			db.session.commit()
+		except Exception as e:
+			print(e)
+			db.session.rollback()
+			return {'status': 'failure'}, 500
+		
+		return '', 200

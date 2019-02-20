@@ -10,11 +10,12 @@ db = SQLAlchemy()
 
 class Post(db.Model):
 	pid = db.Column(db.Integer, primary_key=True)
-	uid = db.Column(db.Integer)
+	uid = db.Column(db.ForeignKey('user.id'), nullable=False)
 	time_posted = db.Column(db.DateTime)
 	path = db.Column(db.LargeBinary)
-	location = db.Column(db.String(50))
+	location = db.Column(db.ForeignKey('location.id'), nullable=False)
 	caption = db.Column(db.String(300))
+	hashtag_id = db.Column(db.ForeignKey('hashtag.id'), nullable=False)
 
 	def __repr__(self):
 		return '<Post>'

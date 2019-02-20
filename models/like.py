@@ -9,8 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class Like(db.Model):
-	pid = db.Column(db.Integer)
-	uid = db.Column(db.Integer)
+	pid = db.Column(db.Integer, primary_key=True)
+	uid = db.Column(db.Integer, primary_key=True)
 	timestamp = db.Column(db.DateTime)
 
 	def __repr__(self):

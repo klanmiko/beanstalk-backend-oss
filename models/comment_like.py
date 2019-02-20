@@ -9,8 +9,8 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 class CommentLike(db.Model):
-	comment_id = db.Column(db.Integer)
-	uid = db.Column(db.Integer)
+	comment_id = db.Column(db.ForeignKey("comment.id"), nullable=False, primary_key=True)
+	uid = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
 	timestamp = db.Column(db.DateTime)
 
 	def __repr__(self):

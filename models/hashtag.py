@@ -8,9 +8,9 @@ from flask_sqlalchemy import SQLAlchemy
 # TODO: figure out good way for model discovery and loading for Milestone 3
 db = SQLAlchemy()
 
-class Location(db.Model):
-	pid = db.Column(db.Integer)
-	hashtag = db.Column(db.String(30))
+class Hashtag(db.Model):
+	id = db.Column(db.Integer, primary_key=True)
+	hashtag = db.Column(db.String(30), primary_key=True)
 
 	def __repr__(self):
-		return '<Location>'
+		return '<Hashtag>'

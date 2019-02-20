@@ -1,5 +1,5 @@
 from flask_restful import Resource
-from Model import User
+from models.user import User
 
 class Demo(Resource):
     def get(self):
