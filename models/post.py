@@ -11,11 +11,15 @@ db = SQLAlchemy()
 class Post(db.Model):
 	pid = db.Column(db.Integer, primary_key=True)
 	uid = db.Column(db.ForeignKey('user.id'), nullable=False)
-	time_posted = db.Column(db.DateTime)
-	path = db.Column(db.LargeBinary)
-	location = db.Column(db.ForeignKey('location.id'), nullable=False)
-	caption = db.Column(db.String(300))
-	hashtag_id = db.Column(db.ForeignKey('hashtag.id'), nullable=False)
+	time_posted = db.Column(db.DateTime, nullable=False)
+	photo = db.Column(db.LargeBinary, nullable=False)
+	caption = db.Column(db.String(300), nullable=False)
+
+class PostSchema(ma.Schema):
+	pid = fields.Integer()
+	uid = fields.Integer()
+	photo = db.Column(db.LargeBinary, nullable=False)
+	caption = fields.String()
 
 	def __repr__(self):
 		return '<Post>'
