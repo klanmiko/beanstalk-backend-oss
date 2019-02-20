@@ -18,3 +18,4 @@ api.add_resource(UserProfileResource, '/User/profile/<username>')
 api.add_resource(UserFollowResource, '/User/follow/<username>')
 
 api.add_resource(PostResource, '/Post/<id>')
+api.add_resource(PostCommentsResource, '/Post/<id>/comments')

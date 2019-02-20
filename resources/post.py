@@ -82,7 +82,46 @@ class PostResource(Resource):
     return '', 200
 
 class PostCommentsResource(Resource):
-  def post():
-    pass
-  def get():
+  def post(self, id):
+    auth_token = request.headers.get('Authorization')
+    current_app.logger.debug("auth_token: %s", auth_token)
+
+    if not auth_token:
+      return {'message': 'No Authorization token'}, 401
+
+    resp = User.decode_auth_token(auth_token)
+    if isinstance(resp, str):
+      response = {
+        'status': 'fail',
+        'message': resp
+      }
+      return response, 401
+    auth_user = User.query.filter_by(id=resp).first()
+
+    post = Post.query.filter(id=id).first()
+
+    json_data = request.get_json(force=True)
+    if not json_data:
+      return {'message', 'No input data provided'}, 400
+
+    data, errors = owner_user_schema.load(json_data)
+    if errors:
+      return errors, 422
+    
+    if not data['comment']:
+      return {'message': 'No comment provided'}, 401
+
+    comment = Comment(pid=post.id, uid=auth_user.id, comment=data['comment'], timestamp=datetime.datetime.now())
+    Comment.add(comment)
+
+    try:
+      db.session.commit()
+
+    except Exception as e:
+      print(e)
+      return {'status': 'failure', 'message': 'incorrect post id'}, 401
+
+    return '', 200
+  
+  def get(self, id):
     pass
