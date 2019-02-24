@@ -166,7 +166,7 @@ class UserLoginResource(Resource):
 			return {'message': "Wrong password"}, 400
 
 		auth_token = user.encode_auth_token(user.id)
-		user = user_schema.dump(user).data
+		user = owner_user_schema.dump(user).data
 		response = {
 			'status': 'success',
 			'message': 'Successfully logged in.',
