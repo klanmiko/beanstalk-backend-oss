@@ -185,7 +185,7 @@ class UserProfileResource(Resource):
 		if not auth_token:
 			return {'message': 'No Authorization token'}, 401
 
-		(user, followers) = db.session.query(User, FollowingAggregation).filter_by(username=username).outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id).first()
+		(user, followers) = db.session.query(User, FollowingAggregation).filter_by(username=username).outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id)
 		if not user:
 			return {'message': 'User does not exist'}, 400
 

@@ -103,7 +103,23 @@ class PostResource(Resource):
 
 class PostItemResource(Resource):
 	def get(self, id):
-		pass
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+		(post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid)
+		
+		# TODO actually encode this response
+		return '', 200
 
 	def put(self, id):
 		pass
