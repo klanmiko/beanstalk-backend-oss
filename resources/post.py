@@ -91,7 +91,7 @@ class PostResource(Resource):
 			db.session.rollback()
 			return {'status': 'failure'}, 500
 
-		response["photo"] = str(response["photo"])
+		response["photo"] = time_elapsed
 
 		return response, 200
 
