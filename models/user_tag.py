@@ -4,9 +4,7 @@ from marshmallow import Schema, fields, pre_load, validate
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 
-# TODO: this makes no sense, I think we should be initializing one db object with all the models
-# TODO: figure out good way for model discovery and loading for Milestone 3
-db = SQLAlchemy()
+from models.shared import db
 
 class UserTag(db.Model):
 	pid = db.Column(db.Integer, primary_key=True)

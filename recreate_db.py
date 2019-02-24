@@ -1,12 +1,21 @@
+import datetime
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from config import Config
 from run import create_app
-from Model import User
+from models.shared import db
+from models.post import Post
+from models.user import User
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
-db = SQLAlchemy(app)
-db.drop_all()
-db.create_all()
+
+with app.app_context():
+	db.init_app(app)
+#db.drop_all()
+	db.create_all()
+
+	post = Post(uid=2, time_posted=datetime.datetime.now(), caption="this is a caption", photo=b"asdadsasdasd")
+	db.session.add(post)
+	db.session.commit()

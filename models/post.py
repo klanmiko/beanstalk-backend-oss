@@ -4,9 +4,8 @@ from marshmallow import Schema, fields, pre_load, validate
 from flask_marshmallow import Marshmallow
 from flask_sqlalchemy import SQLAlchemy
 
-# TODO: this makes no sense, I think we should be initializing one db object with all the models
-# TODO: figure out good way for model discovery and loading for Milestone 3
-db = SQLAlchemy()
+from models.shared import db
+
 ma = Marshmallow()
 
 class Post(db.Model):
@@ -19,7 +18,8 @@ class Post(db.Model):
 class PostSchema(ma.Schema):
 	pid = fields.Integer()
 	uid = fields.Integer()
-	photo = db.Column(db.LargeBinary, nullable=False)
+	time_posted = fields.DateTime()
+	photo = fields.Raw()
 	caption = fields.String()
 
 	def __repr__(self):

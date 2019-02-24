@@ -2,6 +2,7 @@ import json
 import datetime
 from flask import request, current_app
 from flask_restful import Resource
+from models.shared import db
 from models.user import *
 from models.follow import *
 

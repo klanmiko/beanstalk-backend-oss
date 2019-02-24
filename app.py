@@ -17,5 +17,6 @@ api.add_resource(UserLoginResource, '/User/login')
 api.add_resource(UserProfileResource, '/User/profile/<username>')
 api.add_resource(UserFollowResource, '/User/follow/<username>')
 
-api.add_resource(PostResource, '/Post/<id>')
+api.add_resource(PostResource, '/Post')
+api.add_resource(PostItemResource, '/Post/<id>')
 api.add_resource(PostCommentsResource, '/Post/<id>/comments')

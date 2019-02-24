@@ -7,8 +7,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 #from Following import Following, FollowingAggregation
 import jwt
 
+from models.shared import db
+
 ma = Marshmallow()
-db = SQLAlchemy()
 
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
