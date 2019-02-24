@@ -1,5 +1,7 @@
 import datetime
 import base64
+from timeit import default_timer as timer
+from collections import OrderedDict
 
 from flask import request, current_app
 from flask_restful import Resource
@@ -16,14 +18,23 @@ post_schema = PostSchema()
 
 class PostResource(Resource):
 	def get(self):
+		start = timer()
+		time_elapsed = OrderedDict()
 		posts = Post.query.all()
+		time_elapsed["time elapsed checkpoint 1"] = timer() - start
+		current_app.logger.debug("time elapsed 1: %s", time_elapsed["time elapsed checkpoint 1"])
 		posts = posts_schema.dump(posts).data
+		time_elapsed["time elapsed checkpoint 2"] = timer() - start
+		current_app.logger.debug("time elapsed 2: %s", time_elapsed["time elapsed checkpoint 2"])
+
 		for post in posts:
-			post["photo"] = str(post["photo"])
+			post["photo"] = time_elapsed
 
 		return {'status': 'success', 'data': posts}, 200
 
 	def post(self):
+		start = timer()
+		time_elapsed = OrderedDict()
 		auth_token = request.headers.get('Authorization')
 		current_app.logger.debug("auth_token: %s", auth_token)
 
@@ -52,17 +63,27 @@ class PostResource(Resource):
 		if not request.files.get('image'):
 			return {'message': 'No image provided'}, 401
 
+		time_elapsed["time elapsed checkpoint 1"] = timer() - start
+		current_app.logger.debug("time elapsed 1: %s", time_elapsed["time elapsed checkpoint 1"])
 		post = Post(uid=auth_user.id, time_posted=datetime.datetime.now(), caption=data['caption'], photo=(request.files['image'].read()))
-		db.session.add(post)
-		
+
+		time_elapsed["time elapsed checkpoint 2"] = timer() - start
+		current_app.logger.debug("time elapsed 2: %s", time_elapsed["time elapsed checkpoint 2"])
+		#Post.add(post)
 		try:
-			db.session.flush()
+			db.session.add(post)
+			db.session.commit()
+			time_elapsed["time elapsed checkpoint 3"] = timer() - start
+			current_app.logger.debug("time elapsed 3: %s", time_elapsed["time elapsed checkpoint 3"])
+			#db.session.flush()
+
 		except Exception as e:
 			print(e)
 			return {'status': 'failure'}, 500
 
 		#TODO add hashtag and location stuff
 		response = post_schema.dump(post).data
+
 		try:
 			db.session.commit()
 		except Exception as e:
