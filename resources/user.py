@@ -189,6 +189,7 @@ class UserProfileResource(Resource):
 		if not user:
 			return {'message': 'User does not exist'}, 400
 
+
 		resp = User.decode_auth_token(auth_token)
 		if isinstance(resp, str):
 			response = {
@@ -197,6 +198,7 @@ class UserProfileResource(Resource):
 			}
 			return response, 401
 		auth_user = User.query.filter_by(id=resp).first()
+		isFollowing = db.session.query(Follow).filter(Follow.follower_uid == auth_user.id, Follow.following_uid == user.id).first()
 
 		if user.username == auth_user.username: # viewing your own profile
 			result = owner_user_schema.dump(user).data
@@ -204,7 +206,8 @@ class UserProfileResource(Resource):
 			result = private_user_schema.dump(user).data
 		return {'status': 'success', 'data': {
 			'user': result,
-			'followers': followers
+			'followers': followers,
+			'isFollowing': isFollowing
 			}}, 200
 
 	def put(self, username):
