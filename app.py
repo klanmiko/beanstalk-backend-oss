@@ -1,4 +1,5 @@
-from flask import Blueprint
+from flask import Blueprint, Flask
+from config import Config
 from flask_restful import Api
 from resources.hello_world import HelloWorld
 from resources.demo import Demo
@@ -20,3 +21,11 @@ api.add_resource(UserFollowResource, '/User/follow/<username>')
 api.add_resource(PostResource, '/Post')
 api.add_resource(PostItemResource, '/Post/<id>')
 api.add_resource(PostCommentsResource, '/Post/<id>/comments')
+
+app = Flask(__name__)
+app.config.from_object(Config)
+
+app.register_blueprint(api_bp, url_prefix='/api')
+
+from models.shared import db
+db.init_app(app)
