@@ -116,7 +116,7 @@ class PostItemResource(Resource):
 				'message': resp
 			}
 			return response, 401
-		(post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid)
+		(post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
 		
 		# TODO actually encode this response
 		return '', 200
