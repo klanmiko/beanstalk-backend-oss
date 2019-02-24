@@ -53,17 +53,23 @@ class PostResource(Resource):
 			return {'message': 'No image provided'}, 401
 
 		post = Post(uid=auth_user.id, time_posted=datetime.datetime.now(), caption=data['caption'], photo=(request.files['image'].read()))
-		#Post.add(post)
+		db.session.add(post)
+		
 		try:
-			db.session.add(post)
-			db.session.commit()
-			#db.session.flush()
+			db.session.flush()
 		except Exception as e:
 			print(e)
 			return {'status': 'failure'}, 500
 
 		#TODO add hashtag and location stuff
 		response = post_schema.dump(post).data
+		try:
+			db.session.commit()
+		except Exception as e:
+			print(e)
+			db.session.rollback()
+			return {'status': 'failure'}, 500
+
 		response["photo"] = str(response["photo"])
 
 		return response, 200
