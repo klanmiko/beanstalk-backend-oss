@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models.shared import db
 
 class Hashtag(db.Model):
-	post_id = db.Column(db.ForeignKey('post.id'), primary_key=True)
+	post_id = db.Column(db.ForeignKey('post.pid'), primary_key=True)
 	hashtag_id = db.Column(db.ForeignKey('hashtag.id'), primary_key=True)
 
 	def __repr__(self):

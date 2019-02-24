@@ -8,7 +8,7 @@ from models.shared import db
 
 class Comment(db.Model):
 	comment_id = db.Column(db.Integer, primary_key=True)
-	pid = db.Column(db.ForeignKey("post.id"), nullable=False)
+	pid = db.Column(db.ForeignKey("post.pid"), nullable=False)
 	uid = db.Column(db.ForeignKey("user.id"), nullable=False)
 	comment = db.Column(db.String(300))
 	timestamp = db.Column(db.DateTime)

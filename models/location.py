@@ -8,7 +8,7 @@ from models.shared import db
 
 class Location(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
-	pid = db.Column(db.ForeignKey('post.id'), unique=True, nullable=False)
+	pid = db.Column(db.ForeignKey('post.pid'), unique=True, nullable=False)
 	gps = db.Column(db.Integer)
 	city = db.Column(db.String(30))
 	country = db.Column(db.String(30))

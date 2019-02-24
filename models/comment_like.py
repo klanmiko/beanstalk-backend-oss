@@ -7,7 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from models.shared import db
 
 class CommentLike(db.Model):
-	comment_id = db.Column(db.ForeignKey("comment.id"), nullable=False, primary_key=True)
+	comment_id = db.Column(db.ForeignKey("comment.comment_id"), nullable=False, primary_key=True)
 	uid = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
 	timestamp = db.Column(db.DateTime)
 

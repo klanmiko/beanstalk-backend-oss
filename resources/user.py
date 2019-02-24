@@ -185,7 +185,7 @@ class UserProfileResource(Resource):
 		if not auth_token:
 			return {'message': 'No Authorization token'}, 401
 
-		user = User.query.filter_by(username=username).first()
+		(user, followers) = db.session.query(User, FollowingAggregation).filter_by(username=username).outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id).first()
 		if not user:
 			return {'message': 'User does not exist'}, 400
 
@@ -202,7 +202,10 @@ class UserProfileResource(Resource):
 			result = owner_user_schema.dump(user).data
 		else: # viewing someone else's profile
 			result = private_user_schema.dump(user).data
-		return {'status': 'success', 'data': result}, 200
+		return {'status': 'success', 'data': {
+			'user': result,
+			'followers': followers
+			}}, 200
 
 	def put(self, username):
 		auth_token = request.headers.get('Authorization')
