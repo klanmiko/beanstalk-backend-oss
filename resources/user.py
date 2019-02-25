@@ -8,7 +8,7 @@ from models.shared import db
 from models.user import *
 from models.follow import *
 from models.post import *
-from resources.util import mapPost
+from resources.util import mapPost, mapBinaryImage
 
 users_schema = UserSchema(many=True)
 user_schema = UserSchema()
@@ -223,6 +223,9 @@ class UserProfileResource(Resource):
 		else: # viewing someone else's profile
 			result = private_user_schema.dump(user).data
 
+		if result['profile_pic']:
+			result['profile_pic'] = mapBinaryImage(result['profile_pic'])
+
 		if followers:
 			followers = following_aggregation_schema.dump(followers).data
 		
@@ -240,14 +243,6 @@ class UserProfileResource(Resource):
 		if not auth_token:
 			return {'message': 'No Authorization token'}, 401
 
-		json_data = request.get_json(force=True)
-		if not json_data:
-			return {'message', 'No input data provided'}, 400
-
-		data, errors = owner_user_schema.load(json_data)
-		if errors:
-			return errors, 422
-
 		user = User.query.filter_by(username=username).first()
 		if not user:
 			return {'message': 'User does not exist'}, 400
@@ -261,7 +256,29 @@ class UserProfileResource(Resource):
 			return response, 401
 		auth_user = User.query.filter_by(id=resp).first()
 
-		if user.username == auth_user.username:
+		if user.username != auth_user.username:
+			return {'message': 'No permission to update user profile for other users'}, 401
+
+		content_type = request.headers.get('Content-Type')
+		if not content_type:
+			return {'message': 'No Content-Type header'}, 401
+
+		current_app.logger.debug("content_type: %s", content_type)
+		if "multipart/form-data" in content_type:
+			if not request.files.get('image'):
+				return {'message': 'No image provided'}, 401
+
+			user.profile_pic = request.files['image'].read()
+			result = {'message': 'Profile pic stored'}
+		else:
+			json_data = request.get_json(force=True)
+			if not json_data:
+				return {'message', 'No input data provided'}, 400
+
+			data, errors = owner_user_schema.load(json_data)
+			if errors:
+				return errors, 422
+
 			updatable_fields = ["first_name", "last_name", "privacy", "email"]
 			setattr(user, "updated_at", datetime.datetime.utcnow())
 			for field in data:
@@ -271,10 +288,8 @@ class UserProfileResource(Resource):
 					pass
 				else:
 					return {'message': 'No permission to update {}'.format(field)}, 401
-			db.session.commit()
 			result = owner_user_schema.dump(user).data
-		else:
-			return {'message': 'No permission to update user profile for other users'}, 401
+		db.session.commit()
 
 		return {'status': 'success', 'data': result}, 200
 

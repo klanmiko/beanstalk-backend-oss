@@ -363,7 +363,7 @@ class PostItemCommentResource(Resource):
 		if errors:
 			return errors, 422
 
-		comment = Comment(pid=post.pid, uid=auth_user.id, comment=data['comment'], timestamp=datetime.datetime.now())
+		comment = Comment(pid=post.pid, uid=auth_user.id, comment=data['comment'], timestamp=datetime.datetime.utcnow())
 
 		db.session.add(comment)
 		db.session.commit()

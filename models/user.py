@@ -114,6 +114,8 @@ class PrivateUserSchema(ma.Schema):
 	username = fields.String()
 	first_name = fields.String()
 	last_name = fields.String()
+	profile_pic = fields.Raw()
 
 class PublicUserSchema(ma.Schema):
 	username = fields.String()
+	profile_pic = fields.Raw()
