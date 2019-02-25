@@ -61,7 +61,5 @@ class FollowingPosts(Resource):
     if posts:
       posts = list(map(count_likes, posts))
 
-    print(len(posts))
-
     return {'status': 'success', 'data': posts}, 200
       

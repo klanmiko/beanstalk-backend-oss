@@ -15,6 +15,8 @@ from models.comment import Comment, CommentSchema
 from models.comment_like import CommentLike, CommentLikeSchema
 from models.shared import db
 
+from resources.util import mapPost
+
 posts_schema = PostSchema(many=True)
 post_schema = PostSchema()
 post_likes_schema = PostLikeSchema(many=True)
@@ -186,21 +188,35 @@ class PostItemResource(Resource):
 		if not auth_user:
 			return {'message': 'Auth token does not correspond to existing user'}, 400
 
-		post = Post.query.filter_by(pid=pid).first()
+		(post, likes) = db.session.query(Post, func.count(PostLike.uid)) \
+		.outerjoin(PostLike, PostLike.pid == Post.pid) \
+		.filter(Post.pid==pid) \
+		.group_by(Post) \
+		.first()
+
 		if not post:
 			return {'message': 'Post does not exist'}, 400
 
-		result = post_schema.dump(post).data
-		result['photo'] = "Empty for testing so it doesn't lag"
-		result["num_likes"] = len(PostLike.query.filter_by(pid=post.pid).all())
+		result = mapPost(post)
+		result["num_likes"] = likes
 
-		comments = Comment.query.filter_by(pid=post.pid).all()
-		result['comments'] = comments_schema.dump(comments).data
+		r = db.session.query(Comment, func.count(CommentLike.uid)) \
+		.outerjoin(CommentLike, CommentLike.comment_id == Comment.comment_id) \
+		.filter(Comment.pid==post.pid) \
+		.group_by(Comment) \
+		.all()
 
-		for comment in result['comments']:
-			comment['num_likes'] = db.session.query(func.count(CommentLike.uid)).filter(CommentLike.comment_id == comment['comment_id']).scalar()
-		# (post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
+		try:
+			(comments, comment_likes) = zip(*r)
 
+			result['comments'] = comments_schema.dump(comments).data
+
+			for comment, like in zip(result['comments'], comment_likes):
+				comment['num_likes'] = comment_likes
+			# (post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
+		except Exception:
+			# probably doesn't have comments
+			pass
 		# TODO actually encode this response
 		return result, 200
 
