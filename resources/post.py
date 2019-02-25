@@ -278,6 +278,9 @@ class PostItemCommentResource(Resource):
 		comments = Comment.query.filter_by(pid=pid).all()
 		comments = comments_schema.dump(comments).data
 
+		for comment in comments:
+			comment['num_likes'] = len(CommentLike.query.filter_by(comment_id=comment['comment_id']).all())
+
 		return {'status': 'success', 'data': comments}, 200
 
 	# create a new comment for a specific post (DONE)

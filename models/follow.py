@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 
 from models.shared import db
 
+ma = Marshmallow()
+
 class Follow(db.Model):
 	follower_uid = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
 	following_uid = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
@@ -19,3 +21,12 @@ class FollowingAggregation(db.Model):
 
 	def __repr__(self):
 		return '<Follow>'
+
+class FollowSchema(ma.Schema):
+	follower_uid = fields.Integer()
+	following_uid = fields.Integer()
+	timestamp = fields.DateTime()
+	request = fields.Integer()
+
+	def __repr__(self):
+		return '<FollowSchema>'
