@@ -8,6 +8,7 @@ from models.shared import db
 from models.user import *
 from models.follow import *
 from models.post import *
+from resources.util import mapPost
 
 users_schema = UserSchema(many=True)
 user_schema = UserSchema()
@@ -16,7 +17,6 @@ user_login_schema = UserLoginSchema()
 owner_user_schema = OwnerUserSchema()
 private_user_schema = PrivateUserSchema()
 public_user_schema = PublicUserSchema()
-post_schema = PostSchema()
 
 class UserResource(Resource):
 	def get(self):
@@ -198,12 +198,6 @@ class UserProfileResource(Resource):
 			return {'message': 'User does not exist'}, 400
 
 		posts = db.session.query(Post).filter(Post.uid == user.id).all()
-
-		def mapPost(post):
-			p = post_schema.dump(post).data
-			encoded = base64.b64encode(p['photo'])
-			p['photo'] = 'data:image/jpg;base64,{}'.format(encoded.decode())
-			return p
 
 		if posts:
 			try:

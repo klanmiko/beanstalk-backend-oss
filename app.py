@@ -5,6 +5,7 @@ from resources.hello_world import HelloWorld
 from resources.demo import Demo
 from resources.user import *
 from resources.post import *
+from resources.home import *
 
 api_bp = Blueprint('api', __name__)
 api = Api(api_bp)
@@ -24,6 +25,8 @@ api.add_resource(PostItemResource, '/Post/<pid>')
 
 api.add_resource(PostItemCommentResource, '/Post/<pid>/comment')
 api.add_resource(PostItemCommentItemResource, '/Post/<pid>/comment/<comment_id>')
+
+api.add_resource(FollowingPosts, '/User/Home')
 
 app = Flask(__name__)
 app.config.from_object(Config)
