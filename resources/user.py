@@ -227,7 +227,7 @@ class UserProfileResource(Resource):
 		return {'status': 'success', 'data': {
 			'user': result,
 			'followers': followers,
-			'isFollowing': isFollowing,
+			'isFollowing': isFollowing.request if isFollowing else 0,
 			'posts': posts
 			}}, 200
 
