@@ -8,7 +8,7 @@ from flask import request, current_app
 from flask_restful import Resource
 from models.location import Location
 from models.hashtag import Hashtag
-from models.user import User
+from models.user import User, PublicUserSchema
 from models.post import Post, PostSchema
 from models.post_like import PostLike, PostLikeSchema
 from models.comment import Comment, CommentSchema
@@ -25,6 +25,8 @@ comments_schema = CommentSchema(many=True)
 comment_schema = CommentSchema()
 comment_likes_schema = CommentLikeSchema(many=True)
 comment_like_schema = CommentLikeSchema()
+
+public_user_schema = PublicUserSchema()
 
 class PostResource(Resource):
 	# get all posts by all users (DONE)
@@ -188,10 +190,14 @@ class PostItemResource(Resource):
 		if not auth_user:
 			return {'message': 'Auth token does not correspond to existing user'}, 400
 
-		(post, likes) = db.session.query(Post, func.count(PostLike.uid)) \
+		like_exists = db.session.query(PostLike).join(Post, Post.pid==PostLike.pid).filter(PostLike.uid == auth_user.id).subquery()
+
+		(post, likes, user, is_liked) = db.session.query(Post, func.count(PostLike.uid), User, like_exists.c.pid) \
 		.outerjoin(PostLike, PostLike.pid == Post.pid) \
+		.join(User, User.id == Post.uid) \
+		.outerjoin(like_exists, like_exists.c.pid == Post.pid) \
 		.filter(Post.pid==pid) \
-		.group_by(Post) \
+		.group_by(Post, User, like_exists.c.pid) \
 		.first()
 
 		if not post:
@@ -199,6 +205,10 @@ class PostItemResource(Resource):
 
 		result = mapPost(post)
 		result["num_likes"] = likes
+
+		result["user"] = public_user_schema.dump(user).data
+
+		result["like"] = True if is_liked is not None else False
 
 		r = db.session.query(Comment, func.count(CommentLike.uid)) \
 		.outerjoin(CommentLike, CommentLike.comment_id == Comment.comment_id) \
@@ -210,7 +220,7 @@ class PostItemResource(Resource):
 			(comments, comment_likes) = zip(*r)
 
 			result['comments'] = comments_schema.dump(comments).data
-			
+
 			for comment, like in zip(result['comments'], comment_likes):
 				comment['num_likes'] = like
 			# (post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
