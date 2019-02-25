@@ -324,14 +324,14 @@ class UserFollowResource(Resource):
 			print(e)
 
 		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == user.id).update({'followers': FollowingAggregation.followers + 1})
-		
+
 		try:
 			db.session.commit()
 		except Exception as e:
 			print(e)
 			db.session.rollback()
 			return {'status': 'failure'}, 500
-		
+
 		return '', 200
 
 	def delete(self, username):
@@ -370,5 +370,5 @@ class UserFollowResource(Resource):
 			print(e)
 			db.session.rollback()
 			return {'status': 'failure'}, 500
-		
+
 		return '', 200

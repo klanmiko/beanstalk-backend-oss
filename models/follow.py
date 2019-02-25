@@ -26,3 +26,12 @@ class FollowingAggregationSchema(ma.Schema):
 	user_id = fields.Integer()
 	followers = fields.Integer()
 	following = fields.Integer()
+	
+class FollowSchema(ma.Schema):
+	follower_uid = fields.Integer()
+	following_uid = fields.Integer()
+	timestamp = fields.DateTime()
+	request = fields.Integer()
+
+	def __repr__(self):
+		return '<FollowSchema>'
