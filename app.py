@@ -22,6 +22,7 @@ api.add_resource(UserFollowResource, '/User/follow/<username>')
 
 api.add_resource(PostResource, '/Post')
 api.add_resource(PostItemResource, '/Post/<pid>')
+api.add_resource(PostLikeResource, '/Post/<pid>/like')
 
 api.add_resource(PostItemCommentResource, '/Post/<pid>/comment')
 api.add_resource(PostItemCommentItemResource, '/Post/<pid>/comment/<comment_id>')

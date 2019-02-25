@@ -104,6 +104,67 @@ class PostResource(Resource):
 	    result = {"num_rows_deleted": num_rows_deleted}
 	    return {'status': 'success', 'data': result}, 201
 
+class PostLikeResource(Resource):
+	# like a post (DONE)
+	def post(self, pid):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+
+		auth_user = User.query.filter_by(id=resp).first()
+		if not auth_user:
+			return {'message': 'Auth token does not correspond to existing user'}, 400
+
+		try:
+			post_like = PostLike(pid=pid, uid=auth_user.id, timestamp=datetime.datetime.utcnow())
+			db.session.add(post_like)
+			db.session.commit()
+		
+		except Exception:
+			return {'message': 'User already liked post'}, 400
+
+		return {'status': 'success'}, 200
+
+	# unlike (TODO: implementation)
+	def delete(self, pid):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+		auth_user = User.query.filter_by(id=resp).first()
+
+		status = db.session.query(PostLike).filter(PostLike.pid==pid, PostLike.uid==auth_user.id).delete()
+		if status == 0:
+			return {'status': 'failure', 'message': "can't unlike"}, 401
+
+		try:
+			db.session.commit()
+		except Exception as e:
+			print(e)
+			db.session.rollback()
+			return {'status': 'failure'}, 500
+
+		return '', 200
+
 class PostItemResource(Resource):
 	# get post info, comments and likes for a specific post (DONE)
 	def get(self, pid):
@@ -142,45 +203,6 @@ class PostItemResource(Resource):
 
 		# TODO actually encode this response
 		return result, 200
-
-	# like a post (DONE)
-	def post(self, pid):
-		auth_token = request.headers.get('Authorization')
-		current_app.logger.debug("auth_token: %s", auth_token)
-
-		if not auth_token:
-			return {'message': 'No Authorization token'}, 401
-
-		resp = User.decode_auth_token(auth_token)
-		if isinstance(resp, str):
-			response = {
-				'status': 'fail',
-				'message': resp
-			}
-			return response, 401
-
-		auth_user = User.query.filter_by(id=resp).first()
-		if not auth_user:
-			return {'message': 'Auth token does not correspond to existing user'}, 400
-
-		post = Post.query.filter_by(pid=pid).first()
-		if not post:
-			return {'message': 'Post does not exist'}, 400
-
-		data, errors = post_like_schema.load(request.get_json(force=True))
-		if errors:
-			return errors, 422
-
-		if PostLike.query.filter_by(pid=post.pid, uid=auth_user.id).first():
-			return {'message': 'User already liked post'}, 400
-
-		post_like = PostLike(pid=post.pid, uid=auth_user.id, timestamp=datetime.datetime.utcnow())
-		db.session.add(post_like)
-		db.session.commit()
-
-		result = post_like_schema.dump(post).data
-
-		return {'status': 'success', 'data': result}, 201
 
 	# update the post's caption (DONE)
 	def put(self, pid):
@@ -224,7 +246,7 @@ class PostItemResource(Resource):
 
 		return {'status': 'success', 'data': result}, 201
 
-	# delete the post or unlike (TODO: implementation)
+	# delete the post (TODO: implementation)
 	def delete(self, pid):
 		auth_token = request.headers.get('Authorization')
 		current_app.logger.debug("auth_token: %s", auth_token)

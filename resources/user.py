@@ -18,6 +18,7 @@ owner_user_schema = OwnerUserSchema()
 private_user_schema = PrivateUserSchema()
 public_user_schema = PublicUserSchema()
 following_aggregation_schema = FollowingAggregationSchema()
+follow_schema = FollowSchema()
 
 class UserResource(Resource):
 	def get(self):
@@ -190,12 +191,13 @@ class UserProfileResource(Resource):
 		if not auth_token:
 			return {'message': 'No Authorization token'}, 401
 
-		(user, followers) = db.session.query(User, FollowingAggregation) \
-		.filter(User.username==username) \
-		.outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id) \
-		.first()
+		try:
+			(user, followers) = db.session.query(User, FollowingAggregation) \
+			.filter(User.username==username) \
+			.outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id) \
+			.first()
 
-		if not user:
+		except Exception:
 			return {'message': 'User does not exist'}, 400
 
 		posts = db.session.query(Post).filter(Post.uid == user.id).all()
@@ -227,7 +229,7 @@ class UserProfileResource(Resource):
 		return {'status': 'success', 'data': {
 			'user': result,
 			'followers': followers,
-			'isFollowing': isFollowing.request if isFollowing else 0,
+			'isFollowing': follow_schema.dump(isFollowing).data if isFollowing else False,
 			'posts': posts
 			}}, 200
 
