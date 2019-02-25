@@ -265,12 +265,17 @@ class UserProfileResource(Resource):
 
 		current_app.logger.debug("content_type: %s", content_type)
 		if "multipart/form-data" in content_type:
-			if not request.files.get('image'):
-				return {'message': 'No image provided'}, 401
+			if request.files.get('image'):
+				user.profile_pic = request.files['image'].read()
 
-			user.profile_pic = request.files['image'].read()
-			result = {'message': 'Profile pic stored'}
-		else:
+			data = request.form
+			updatable_fields = ["first_name", "last_name", "privacy", "email"]
+			for field in data:
+				if field not in updatable_fields:
+					continue
+				elif data[field]:
+					setattr(user, field, data[field])
+		else: # backwards compat.
 			json_data = request.get_json(force=True)
 			if not json_data:
 				return {'message', 'No input data provided'}, 400
@@ -280,7 +285,6 @@ class UserProfileResource(Resource):
 				return errors, 422
 
 			updatable_fields = ["first_name", "last_name", "privacy", "email"]
-			setattr(user, "updated_at", datetime.datetime.utcnow())
 			for field in data:
 				if field in updatable_fields and data[field]:
 					setattr(user, field, data[field])
@@ -288,7 +292,10 @@ class UserProfileResource(Resource):
 					pass
 				else:
 					return {'message': 'No permission to update {}'.format(field)}, 401
-			result = owner_user_schema.dump(user).data
+		result = owner_user_schema.dump(user).data
+		if result['profile_pic']:
+			result['profile_pic'] = mapBinaryImage(result['profile_pic'])
+		setattr(user, "updated_at", datetime.datetime.utcnow())
 		db.session.commit()
 
 		return {'status': 'success', 'data': result}, 200
