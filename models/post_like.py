@@ -8,18 +8,18 @@ from models.shared import db
 
 ma = Marshmallow()
 
-class CommentLike(db.Model):
-	comment_id = db.Column(db.ForeignKey("comment.comment_id"), nullable=False, primary_key=True)
-	uid = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True)
+class PostLike(db.Model):
+	pid = db.Column(db.ForeignKey("post.pid"), nullable=False, primary_key=True)
+	uid = db.Column(db.ForeignKey("user.id"), nullable=False,  primary_key=True)
 	timestamp = db.Column(db.DateTime)
 
 	def __repr__(self):
-		return '<CommentLike>'
+		return '<PostLike>'
 
-class CommentLikeSchema(ma.Schema):
-	comment_id = fields.Integer()
+class PostLikeSchema(ma.Schema):
+	pid = fields.Integer()
 	uid = fields.Integer()
 	timestamp = fields.DateTime()
 
 	def __repr__(self):
-		return '<CommentLike>'
+		return '<PostLike>'

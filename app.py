@@ -12,6 +12,7 @@ api = Api(api_bp)
 # Routes
 api.add_resource(HelloWorld, '/')
 api.add_resource(Demo, '/demo')
+
 api.add_resource(UserResource, '/User')
 api.add_resource(UserRegisterResource, '/User/register')
 api.add_resource(UserLoginResource, '/User/login')
@@ -19,8 +20,10 @@ api.add_resource(UserProfileResource, '/User/profile/<username>')
 api.add_resource(UserFollowResource, '/User/follow/<username>')
 
 api.add_resource(PostResource, '/Post')
-api.add_resource(PostItemResource, '/Post/<id>')
-api.add_resource(PostCommentsResource, '/Post/<id>/comments')
+api.add_resource(PostItemResource, '/Post/<pid>')
+
+api.add_resource(PostItemCommentResource, '/Post/<pid>/comment')
+api.add_resource(PostItemCommentItemResource, '/Post/<pid>/comment/<comment_id>')
 
 app = Flask(__name__)
 app.config.from_object(Config)
