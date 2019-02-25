@@ -273,7 +273,7 @@ class UserProfileResource(Resource):
 
 
 class UserFollowResource(Resource):
-	def post():
+	def post(self, username):
 		auth_token = request.headers.get('Authorization')
 		current_app.logger.debug("auth_token: %s", auth_token)
 
@@ -292,28 +292,34 @@ class UserFollowResource(Resource):
 			}
 			return response, 401
 		auth_user = User.query.filter_by(id=resp).first()
-		followRelationship = Follow(resp, user.id, datetime.datetime.now(), 0)
+		followRelationship = Follow(follower_uid=resp, following_uid=user.id, timestamp=datetime.datetime.now(), request=1)
 		try:
-			Follow.add(followRelationship)
+			db.session.add(followRelationship)
+			db.session.flush()
 		except Exception as e:
 			print(e)
+			db.session.rollback()
 			return {'status': 'fail', 'message': 'already following user'}, 401
 
-		aggregation = FollowingAggregation(auth_user.id, 0, 0)
+		aggregation = FollowingAggregation(user_id=auth_user.id, followers=0, following=0)
 		try:
 			with db.session.begin_nested():
-				FollowingAggregation.add(aggregation)
+				db.session.add(aggregation)
 		except Exception as e:
 			print(e)
-		FollowingAggregation.update().values(FollowingAggregation.following + 1).filter(FollowingAggregation.user_id == auth_user.id)
 
-		aggregation = FollowingAggregation(user.id, 0, 0)
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == auth_user.id).update({'following': FollowingAggregation.following + 1})
+
+		aggregation = FollowingAggregation(user_id=user.id, followers=0, following=0)
+
 		try:
 			with db.session.begin_nested():
-				FollowingAggregation.add(aggregation)
+				db.session.add(aggregation)
 		except Exception as e:
 			print(e)
-		FollowingAggregation.update().values(FollowingAggregation.followers + 1).filter(FollowingAggregation.user_id == user.id)
+
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == user.id).update({'followers': FollowingAggregation.followers + 1})
+		
 		try:
 			db.session.commit()
 		except Exception as e:
@@ -323,7 +329,7 @@ class UserFollowResource(Resource):
 		
 		return '', 200
 
-	def delete():
+	def delete(self, username):
 		auth_token = request.headers.get('Authorization')
 		current_app.logger.debug("auth_token: %s", auth_token)
 
@@ -344,13 +350,15 @@ class UserFollowResource(Resource):
 		auth_user = User.query.filter_by(id=resp).first()
 
 		try:
-			Follow.delete().filter(follower_id==auth_user.id, following_uid==user.id)
+			status = db.session.query(Follow).filter(Follow.follower_uid==auth_user.id, Follow.following_uid==user.id).delete()
+			if status == 0:
+				raise Exception('no rows deleted')
 		except Exception as e:
 			print(e)
 			return {'status': 'fail', 'message': 'not following user'}, 401
 
-		FollowingAggregation.update().values(FollowingAggregation.following - 1).filter(FollowingAggregation.user_id == auth_user.id)
-		FollowingAggregation.update().values(FollowingAggregation.followers - 1).filter(FollowingAggregation.user_id == user.id)
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == auth_user.id).update({'following': FollowingAggregation.following - 1})
+		db.session.query(FollowingAggregation).filter(FollowingAggregation.user_id == user.id).update({'followers': FollowingAggregation.followers - 1})
 		try:
 			db.session.commit()
 		except Exception as e:
