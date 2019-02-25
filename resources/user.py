@@ -17,6 +17,7 @@ user_login_schema = UserLoginSchema()
 owner_user_schema = OwnerUserSchema()
 private_user_schema = PrivateUserSchema()
 public_user_schema = PublicUserSchema()
+following_aggregation_schema = FollowingAggregationSchema()
 
 class UserResource(Resource):
 	def get(self):
@@ -219,6 +220,10 @@ class UserProfileResource(Resource):
 			result = owner_user_schema.dump(user).data
 		else: # viewing someone else's profile
 			result = private_user_schema.dump(user).data
+
+		if followers:
+			followers = following_aggregation_schema.dump(followers).data
+		
 		return {'status': 'success', 'data': {
 			'user': result,
 			'followers': followers,
