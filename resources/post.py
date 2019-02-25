@@ -210,9 +210,9 @@ class PostItemResource(Resource):
 			(comments, comment_likes) = zip(*r)
 
 			result['comments'] = comments_schema.dump(comments).data
-
+			
 			for comment, like in zip(result['comments'], comment_likes):
-				comment['num_likes'] = comment_likes
+				comment['num_likes'] = like
 			# (post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
 		except Exception:
 			# probably doesn't have comments
