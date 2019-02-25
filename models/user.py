@@ -22,6 +22,7 @@ class User(db.Model):
 	created_at = db.Column(db.DateTime)
 	updated_at = db.Column(db.DateTime)
 	profile_pic = db.Column(db.LargeBinary)
+	posts = db.relationship("Post")
 
 	def __repr__(self):
 		return '<User {}>'.format(self.username)

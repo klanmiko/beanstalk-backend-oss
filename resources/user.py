@@ -1,10 +1,13 @@
 import json
 import datetime
+import base64
 from flask import request, current_app
+from sqlalchemy.sql.functions import func
 from flask_restful import Resource
 from models.shared import db
 from models.user import *
 from models.follow import *
+from models.post import *
 
 users_schema = UserSchema(many=True)
 user_schema = UserSchema()
@@ -13,6 +16,7 @@ user_login_schema = UserLoginSchema()
 owner_user_schema = OwnerUserSchema()
 private_user_schema = PrivateUserSchema()
 public_user_schema = PublicUserSchema()
+post_schema = PostSchema()
 
 class UserResource(Resource):
 	def get(self):
@@ -185,10 +189,27 @@ class UserProfileResource(Resource):
 		if not auth_token:
 			return {'message': 'No Authorization token'}, 401
 
-		(user, followers) = db.session.query(User, FollowingAggregation).filter(User.username==username).outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id).first()
+		(user, followers) = db.session.query(User, FollowingAggregation) \
+		.filter(User.username==username) \
+		.outerjoin(FollowingAggregation, FollowingAggregation.user_id == User.id) \
+		.first()
+
 		if not user:
 			return {'message': 'User does not exist'}, 400
 
+		posts = db.session.query(Post).filter(Post.uid == user.id).all()
+
+		def mapPost(post):
+			p = post_schema.dump(post).data
+			encoded = base64.b64encode(p['photo'])
+			p['photo'] = 'data:image/jpg;base64,{}'.format(encoded.decode())
+			return p
+
+		if posts:
+			try:
+				posts = list(map(mapPost, posts))
+			except Exception as e:
+				posts = [mapPost(posts)]
 
 		resp = User.decode_auth_token(auth_token)
 		if isinstance(resp, str):
@@ -207,7 +228,8 @@ class UserProfileResource(Resource):
 		return {'status': 'success', 'data': {
 			'user': result,
 			'followers': followers,
-			'isFollowing': isFollowing
+			'isFollowing': isFollowing,
+			'posts': posts
 			}}, 200
 
 	def put(self, username):
