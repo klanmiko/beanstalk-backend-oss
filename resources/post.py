@@ -198,7 +198,7 @@ class PostItemResource(Resource):
 		result['comments'] = comments_schema.dump(comments).data
 
 		for comment in result['comments']:
-			comment['num_likes'] = db.session.query(func.count(CommentLike.uid)).filter(CommentLike.comment_id == comment.comment_id).scalar()
+			comment['num_likes'] = db.session.query(func.count(CommentLike.uid)).filter(CommentLike.comment_id == comment['comment_id']).scalar()
 		# (post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
 
 		# TODO actually encode this response
