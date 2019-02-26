@@ -3,7 +3,7 @@ import datetime
 import base64
 from flask import request, current_app
 from sqlalchemy.sql.functions import func
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from models.shared import db
 from models.user import *
 from models.follow import *
@@ -19,6 +19,7 @@ private_user_schema = PrivateUserSchema()
 public_user_schema = PublicUserSchema()
 following_aggregation_schema = FollowingAggregationSchema()
 follow_schema = FollowSchema()
+search_users_schema = SearchUserSchema(many=True)
 
 class UserResource(Resource):
 	def get(self):
@@ -292,11 +293,11 @@ class UserProfileResource(Resource):
 					pass
 				else:
 					return {'message': 'No permission to update {}'.format(field)}, 401
+		setattr(user, "updated_at", datetime.datetime.utcnow())
+		db.session.commit()
 		result = owner_user_schema.dump(user).data
 		if result['profile_pic']:
 			result['profile_pic'] = mapBinaryImage(result['profile_pic'])
-		setattr(user, "updated_at", datetime.datetime.utcnow())
-		db.session.commit()
 
 		return {'status': 'success', 'data': result}, 200
 
@@ -396,3 +397,16 @@ class UserFollowResource(Resource):
 			return {'status': 'failure'}, 500
 
 		return '', 200
+
+class UserSearchResource(Resource):
+	def get(self):
+		args = request.args
+
+		if "query" not in args:
+			return {'message': 'No query parameter in url'}, 401
+
+		query = str(args['query'])
+		users = User.query.filter(User.username.like(query + "%")).all()
+		users = search_users_schema.dump(users).data
+
+		return {'status': 'success', 'data': users}, 200

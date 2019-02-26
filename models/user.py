@@ -119,3 +119,6 @@ class PrivateUserSchema(ma.Schema):
 class PublicUserSchema(ma.Schema):
 	username = fields.String()
 	profile_pic = fields.Raw()
+
+class SearchUserSchema(ma.Schema):
+	username = fields.String()

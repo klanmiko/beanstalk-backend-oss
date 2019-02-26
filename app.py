@@ -28,6 +28,7 @@ api.add_resource(PostItemCommentResource, '/Post/<pid>/comment')
 api.add_resource(PostItemCommentItemResource, '/Post/<pid>/comment/<comment_id>')
 
 api.add_resource(FollowingPosts, '/User/Home')
+api.add_resource(UserSearchResource, '/User/search')
 
 app = Flask(__name__)
 app.config.from_object(Config)
