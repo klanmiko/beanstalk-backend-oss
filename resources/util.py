@@ -9,6 +9,5 @@ def mapBinaryImage(image):
 
 def mapPost(post):
    p = post_schema.dump(post).data
-   encoded = base64.b64encode(p['photo'])
-   p['photo'] = 'data:image/jpg;base64,{}'.format(encoded.decode())
+   p['photo'] = mapBinaryImage(p['photo'])
    return p

@@ -41,12 +41,12 @@ class FollowingPosts(Resource):
 
     like_exists = db.session.query(PostLike).join(Post, Post.pid==PostLike.pid).filter(PostLike.uid == auth_user.id).subquery()
 
-    posts = db.session.query(Post, func.count(PostLike.uid), User, like_exists.c.pid) \
+    posts = db.session.query(Post, func.count(PostLike.uid), User.username, like_exists.c.pid) \
     .join(User, User.id == Post.uid) \
     .outerjoin(PostLike, PostLike.pid == Post.pid) \
     .join(Follow, (Follow.follower_uid == auth_user.id) & (Follow.following_uid == User.id)) \
     .outerjoin(like_exists, like_exists.c.pid==Post.pid) \
-    .group_by(Post, User, like_exists.c.pid) \
+    .group_by(Post, User.username, like_exists.c.pid) \
     .all()
 
     def count_likes(tuple):
@@ -54,7 +54,7 @@ class FollowingPosts(Resource):
       like = tuple[1]
       user = tuple[2]
       post['num_likes'] = like
-      post['user'] = public_user_schema.dump(user).data
+      post['user'] = user
       post['like'] = True if tuple[3] is not None else False
       return post
 
