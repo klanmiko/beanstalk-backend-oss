@@ -98,7 +98,12 @@ class UserRegisterSchema(ma.Schema):
 
 class UserLoginSchema(ma.Schema):
 	username = fields.String(required=True)
-	password = fields.String(required=True)
+	password = fields.String(required=True, load_only=True)
+	first_name = fields.String()
+	last_name = fields.String()
+	privacy = fields.Boolean()
+	created_at = fields.DateTime()
+	updated_at = fields.DateTime()
 
 class OwnerUserSchema(ma.Schema):
 	username = fields.String()

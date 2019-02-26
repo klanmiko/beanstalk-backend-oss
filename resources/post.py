@@ -8,7 +8,7 @@ from flask import request, current_app
 from flask_restful import Resource
 from models.location import Location
 from models.hashtag import Hashtag
-from models.user import User, PublicUserSchema
+from models.user import User, PublicUserSchema, SearchUserSchema
 from models.post import Post, PostSchema
 from models.post_like import PostLike, PostLikeSchema
 from models.comment import Comment, CommentSchema
@@ -25,6 +25,7 @@ comments_schema = CommentSchema(many=True)
 comment_schema = CommentSchema()
 comment_likes_schema = CommentLikeSchema(many=True)
 comment_like_schema = CommentLikeSchema()
+search_user_schema = SearchUserSchema()
 
 public_user_schema = PublicUserSchema()
 
@@ -206,7 +207,7 @@ class PostItemResource(Resource):
 		result = mapPost(post)
 		result["num_likes"] = likes
 
-		result["user"] = public_user_schema.dump(user).data
+		result["user"] = search_user_schema.dump(user).data
 
 		result["like"] = True if is_liked is not None else False
 
