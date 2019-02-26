@@ -234,7 +234,8 @@ class UserProfileResource(Resource):
 			'user': result,
 			'followers': followers,
 			'isFollowing': follow_schema.dump(isFollowing).data if isFollowing else False,
-			'posts': posts
+			'posts': posts,
+			'num_posts': len(posts)
 			}}, 200
 
 	def put(self, username):
