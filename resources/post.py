@@ -372,7 +372,7 @@ class PostItemCommentResource(Resource):
 		#TODO add hashtag and location stuff
 		response = comment_schema.dump(comment).data
 
-		return response, 201
+		return {'status': 'success', 'data': response}, 201
 
 	# delete all comments for a specific post (TODO: implementation)
 	def delete(self, pid):
