@@ -98,6 +98,7 @@ class UserRegisterSchema(ma.Schema):
 
 class UserLoginSchema(ma.Schema):
 	username = fields.String(required=True)
+	email = fields.String()
 	password = fields.String(required=True, load_only=True)
 	first_name = fields.String()
 	last_name = fields.String()
@@ -117,6 +118,7 @@ class OwnerUserSchema(ma.Schema):
 
 class PrivateUserSchema(ma.Schema):
 	username = fields.String()
+	email = fields.String()
 	first_name = fields.String()
 	last_name = fields.String()
 	profile_pic = fields.Raw()
