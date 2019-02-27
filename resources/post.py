@@ -17,7 +17,7 @@ from models.comment import Comment, CommentSchema
 from models.comment_like import CommentLike, CommentLikeSchema
 from models.shared import db
 
-from resources.util import mapPost
+from resources.util import mapPost, mapBinaryImage
 from resources.photos import photo_dir
 
 posts_schema = PostSchema(many=True)
@@ -223,6 +223,7 @@ class PostItemResource(Resource):
 		result["num_likes"] = likes
 
 		result["user"] = public_user_schema.dump(user).data
+		result['user']['profile_pic'] = mapBinaryImage(result['user']['profile_pic'])
 
 		result["like"] = True if is_liked is not None else False
 
