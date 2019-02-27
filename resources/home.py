@@ -47,6 +47,7 @@ class FollowingPosts(Resource):
     .join(Follow, (Follow.follower_uid == auth_user.id) & (Follow.following_uid == User.id)) \
     .outerjoin(like_exists, like_exists.c.pid==Post.pid) \
     .group_by(Post, User.username, like_exists.c.pid) \
+    .order_by(Post.time_posted.desc()) \
     .all()
 
     def count_likes(tuple):

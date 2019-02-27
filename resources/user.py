@@ -201,7 +201,7 @@ class UserProfileResource(Resource):
 		except Exception:
 			return {'message': 'User does not exist'}, 400
 
-		posts = db.session.query(Post).filter(Post.uid == user.id).all()
+		posts = db.session.query(Post).filter(Post.uid == user.id).order_by(Post.time_posted.desc()).all()
 
 		if posts:
 			try:
