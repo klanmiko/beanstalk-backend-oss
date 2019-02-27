@@ -288,18 +288,19 @@ class PostItemResource(Resource):
 				'message': resp
 			}
 			return response, 401
+
 		auth_user = User.query.filter_by(id=resp).first()
+		if not auth_user:
+			return {'message': 'Auth token does not correspond to existing user'}, 400
 
-		post = Post.query.filter(pid=pid).first()
-		if post.uid != auth_user.id:
-			return {'message': 'User does not have permission to delete this post'}, 403
-
-		Post.delete().filter(Post.pid==id)
 		try:
+			db.session.query(Post).filter(Post.pid==pid, Post.uid==auth_user.id).delete()
+
 			db.session.commit()
-		except Exception as e:
-			print(e)
-			return {'status': 'failure'}, 500
+
+			return '', 200
+		except Exception:
+			return {'status': 'failure', 'message': 'either post does not exist or you do not have permissions'}, 403
 
 		return '', 200
 
@@ -376,32 +377,7 @@ class PostItemCommentResource(Resource):
 
 	# delete all comments for a specific post (TODO: implementation)
 	def delete(self, pid):
-		auth_token = request.headers.get('Authorization')
-		current_app.logger.debug("auth_token: %s", auth_token)
-
-		if not auth_token:
-			return {'message': 'No Authorization token'}, 401
-
-		resp = User.decode_auth_token(auth_token)
-		if isinstance(resp, str):
-			response = {
-				'status': 'fail',
-				'message': resp
-			}
-			return response, 401
-
-		auth_user = User.query.filter_by(id=resp).first()
-		if not auth_user:
-			return {'message': 'Auth token does not correspond to existing user'}, 400
-
-		try:
-			db.session.query(Post).filter(Post.pid==pid, Post.uid==auth_user.id).delete()
-
-			db.session.commit()
-
-			return '', 200
-		except Exception:
-			return {'status': 'failure', 'message': 'either post does not exist or you do not have permissions'}, 403
+		pass
 
 class PostItemCommentItemResource(Resource):
 	# get comment info and number of likes for comment (DONE)
