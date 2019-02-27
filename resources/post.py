@@ -375,6 +375,7 @@ class PostItemCommentResource(Resource):
 
 		#TODO add hashtag and location stuff
 		response = comment_schema.dump(comment).data
+		response['user'] = auth_user.username
 
 		return {'status': 'success', 'data': response}, 201
 
