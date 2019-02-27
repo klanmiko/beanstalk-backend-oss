@@ -9,8 +9,8 @@ from models.shared import db
 ma = Marshmallow()
 
 class PostLike(db.Model):
-	pid = db.Column(db.ForeignKey("post.pid"), nullable=False, primary_key=True)
-	uid = db.Column(db.ForeignKey("user.id"), nullable=False,  primary_key=True)
+	pid = db.Column(db.ForeignKey("post.pid"), nullable=False, primary_key=True, ondelete="CASCADE")
+	uid = db.Column(db.ForeignKey("user.id"), nullable=False,  primary_key=True, ondelete="CASCADE")
 	timestamp = db.Column(db.DateTime)
 
 	def __repr__(self):
