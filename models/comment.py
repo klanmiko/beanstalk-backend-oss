@@ -10,7 +10,7 @@ ma = Marshmallow()
 
 class Comment(db.Model):
 	comment_id = db.Column(db.Integer, primary_key=True)
-	pid = db.Column(db.ForeignKey("post.pid", ondelete="CASCADE"), nullable=False)
+	pid = db.Column(db.ForeignKey("post.pid", ondelete="CASCADE"), nullable=False, index=True)
 	uid = db.Column(db.ForeignKey("user.id", ondelete="SET NULL"), nullable=False)
 	comment = db.Column(db.String(300))
 	timestamp = db.Column(db.DateTime, index=True)
