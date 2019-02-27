@@ -6,6 +6,7 @@ from resources.demo import Demo
 from resources.user import *
 from resources.post import *
 from resources.home import *
+from resources.photos import photos
 
 api_bp = Blueprint('api', __name__)
 api = Api(api_bp)
@@ -34,6 +35,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 app.register_blueprint(api_bp, url_prefix='/api')
+app.register_blueprint(photos, url_prefix='/api/photos')
 
 from models.shared import db
 db.init_app(app)

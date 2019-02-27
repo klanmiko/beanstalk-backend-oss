@@ -1,5 +1,7 @@
 import datetime
 import base64
+import os
+from uuid import UUID, uuid4
 from timeit import default_timer as timer
 from collections import OrderedDict
 
@@ -16,6 +18,7 @@ from models.comment_like import CommentLike, CommentLikeSchema
 from models.shared import db
 
 from resources.util import mapPost
+from resources.photos import photo_dir
 
 posts_schema = PostSchema(many=True)
 post_schema = PostSchema()
@@ -80,7 +83,19 @@ class PostResource(Resource):
 
 		time_elapsed["time elapsed checkpoint 1"] = timer() - start
 		current_app.logger.debug("time elapsed 1: %s", time_elapsed["time elapsed checkpoint 1"])
-		post = Post(uid=auth_user.id, time_posted=datetime.datetime.now(), caption=data['caption'], photo=(request.files['image'].read()))
+
+		photo = request.files.get('image')
+
+		photo_uid = uuid4()
+		photo_path = os.path.join(photo_dir, str(photo_uid))
+
+		try:
+			photo.save(photo_path)
+		except Exception as e:
+			print(e)
+			return {'message': 'unable to save image'}, 500
+
+		post = Post(uid=auth_user.id, time_posted=datetime.datetime.now(), caption=data['caption'], photo=photo_uid.bytes)
 
 		time_elapsed["time elapsed checkpoint 2"] = timer() - start
 		current_app.logger.debug("time elapsed 2: %s", time_elapsed["time elapsed checkpoint 2"])
@@ -98,7 +113,7 @@ class PostResource(Resource):
 
 		#TODO add hashtag and location stuff
 		response = post_schema.dump(post).data
-		response["photo"] = time_elapsed
+		response['photo'] = str(UUID(bytes=response['photo']))
 
 		return response, 201
 
