@@ -222,7 +222,7 @@ class PostItemResource(Resource):
 		result = mapPost(post)
 		result["num_likes"] = likes
 
-		result["user"] = search_user_schema.dump(user).data
+		result["user"] = public_user_schema.dump(user).data
 
 		result["like"] = True if is_liked is not None else False
 
