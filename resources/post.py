@@ -211,19 +211,21 @@ class PostItemResource(Resource):
 
 		result["like"] = True if is_liked is not None else False
 
-		r = db.session.query(Comment, func.count(CommentLike.uid)) \
+		r = db.session.query(Comment, func.count(CommentLike.uid), User.username) \
+		.join(User, User.id == Comment.uid) \
 		.outerjoin(CommentLike, CommentLike.comment_id == Comment.comment_id) \
 		.filter(Comment.pid==post.pid) \
-		.group_by(Comment) \
+		.group_by(Comment, User.username) \
 		.all()
 
 		try:
-			(comments, comment_likes) = zip(*r)
+			(comments, comment_likes, users) = zip(*r)
 
 			result['comments'] = comments_schema.dump(comments).data
 
-			for comment, like in zip(result['comments'], comment_likes):
+			for comment, like, user in zip(result['comments'], comment_likes, users):
 				comment['num_likes'] = like
+				comment['user'] = user
 			# (post, comments, likes) = db.session.query(Post, Comment, Like).filter(Post.pid==id).outerjoin(Comment, Comment.pid == Post.pid).outerjoin(Like, Like.pid == Post.pid).first()
 		except Exception:
 			# probably doesn't have comments
