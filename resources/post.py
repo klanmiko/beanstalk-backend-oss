@@ -223,7 +223,10 @@ class PostItemResource(Resource):
 		result["num_likes"] = likes
 
 		result["user"] = public_user_schema.dump(user).data
-		result['user']['profile_pic'] = mapBinaryImage(result['user']['profile_pic'])
+		try:
+			result['user']['profile_pic'] = mapBinaryImage(result['user']['profile_pic'])
+		except Exception as e:
+			print(e)
 
 		result["like"] = True if is_liked is not None else False
 
