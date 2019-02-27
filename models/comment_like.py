@@ -9,8 +9,8 @@ from models.shared import db
 ma = Marshmallow()
 
 class CommentLike(db.Model):
-	comment_id = db.Column(db.ForeignKey("comment.comment_id"), nullable=False, primary_key=True, ondelete="CASCADE")
-	uid = db.Column(db.ForeignKey("user.id"), nullable=False, primary_key=True, ondelete="CASCADE")
+	comment_id = db.Column(db.ForeignKey("comment.comment_id", ondelete="CASCADE"), nullable=False, primary_key=True)
+	uid = db.Column(db.ForeignKey("user.id", ondelete="CASCADE"), nullable=False, primary_key=True)
 	timestamp = db.Column(db.DateTime)
 
 	def __repr__(self):
