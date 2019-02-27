@@ -216,6 +216,7 @@ class PostItemResource(Resource):
 		.outerjoin(CommentLike, CommentLike.comment_id == Comment.comment_id) \
 		.filter(Comment.pid==post.pid) \
 		.group_by(Comment, User.username) \
+		.order_by(Comment.timestamp.desc()) \
 		.all()
 
 		try:
@@ -374,6 +375,7 @@ class PostItemCommentResource(Resource):
 
 		#TODO add hashtag and location stuff
 		response = comment_schema.dump(comment).data
+		response['user'] = auth_user.username
 
 		return {'status': 'success', 'data': response}, 201
 
