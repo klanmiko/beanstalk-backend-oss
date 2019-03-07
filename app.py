@@ -29,9 +29,12 @@ api.add_resource(PostLikeResource, '/Post/<pid>/like')
 api.add_resource(PostItemCommentResource, '/Post/<pid>/comment')
 api.add_resource(PostItemCommentItemResource, '/Post/<pid>/comment/<comment_id>')
 
+api.add_resource(PostLocationResource, '/Post/<pid>/location')
+
 api.add_resource(FollowingPosts, '/User/Home')
 api.add_resource(UserSearchResource, '/User/search')
 api.add_resource(HashtagResource, '/Hashtag')
+
 
 app = Flask(__name__)
 app.config.from_object(Config)

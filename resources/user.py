@@ -8,6 +8,7 @@ from models.shared import db
 from models.user import *
 from models.follow import *
 from models.post import *
+from models.hashtag import *
 from resources.util import mapPost, mapBinaryImage
 
 users_schema = UserSchema(many=True)
@@ -20,6 +21,8 @@ public_user_schema = PublicUserSchema()
 following_aggregation_schema = FollowingAggregationSchema()
 follow_schema = FollowSchema()
 search_users_schema = SearchUserSchema(many=True)
+hashtag_schema = HashtagSchema()
+hashtags_schema = HashtagSchema(many=True)
 
 class UserResource(Resource):
 	def get(self):
@@ -407,7 +410,13 @@ class UserSearchResource(Resource):
 			return {'message': 'No query parameter in url'}, 401
 
 		query = str(args['query'])
+
 		users = User.query.filter(User.username.like(query + "%")).all()
 		users = search_users_schema.dump(users).data
 
-		return {'status': 'success', 'data': users}, 200
+		hashtags = Hashtag.query.filter(Hashtag.hashtag.like("#" + query + "%")).all()
+		hashtags = hashtags_schema.dump(hashtags).data
+
+		response = users + hashtags
+
+		return {'status': 'success', 'data': response}, 200

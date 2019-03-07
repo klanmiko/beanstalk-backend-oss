@@ -1,6 +1,7 @@
 import datetime
 import base64
 import os
+from decimal import *
 from uuid import UUID, uuid4
 from timeit import default_timer as timer
 from collections import OrderedDict
@@ -8,7 +9,7 @@ from collections import OrderedDict
 from sqlalchemy.sql.functions import func
 from flask import request, current_app
 from flask_restful import Resource
-from models.location import Location
+from models.location import Location, LocationSchema
 from models.hashtag import Hashtag
 from models.post_hashtag import PostHashtag
 from models.user import User, PublicUserSchema, SearchUserSchema
@@ -30,8 +31,9 @@ comment_schema = CommentSchema()
 comment_likes_schema = CommentLikeSchema(many=True)
 comment_like_schema = CommentLikeSchema()
 search_user_schema = SearchUserSchema()
-
 public_user_schema = PublicUserSchema()
+location_schema = LocationSchema()
+locations_schema = LocationSchema(many=True)
 
 class PostResource(Resource):
 	# get all posts by all users (DONE)
@@ -122,6 +124,18 @@ class PostResource(Resource):
 
 					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
 					db.session.add(new_post_hashtag)
+
+			latitude = data.get("latitude")
+			longitude = data.get("longitude")
+			if latitude and longitude:
+				try:
+					latitude = Decimal(latitude)
+					longitude = Decimal(longitude)
+				except:
+					return {'message': 'latitude or longitude cannot be converted to decimal type'}, 401
+
+				location = Location(pid=post.pid, latitude=latitude, longitude=longitude)
+				db.session.add(location)
 
 			db.session.commit()
 		except Exception as e:
@@ -545,3 +559,31 @@ class PostItemCommentItemResource(Resource):
 	# delete a comment (TODO: implementation)
 	def delete(self, pid, comment_id):
 		pass
+
+class PostLocationResource(Resource):
+	def get(self, pid):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+
+		auth_user = User.query.filter_by(id=resp).first()
+		if not auth_user:
+			return {'message': 'Auth token does not correspond to existing user'}, 400
+
+		location = Location.query.filter_by(pid=pid).first()
+		location = location_schema.dump(location).data
+		if location:
+			location["latitude"] = str(location["latitude"])
+			location["longitude"] = str(location["longitude"])
+
+		return {'status': 'success', 'data': location}, 200
