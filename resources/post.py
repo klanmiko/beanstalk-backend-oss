@@ -10,6 +10,7 @@ from flask import request, current_app
 from flask_restful import Resource
 from models.location import Location
 from models.hashtag import Hashtag
+from models.post_hashtag import PostHashtag
 from models.user import User, PublicUserSchema, SearchUserSchema
 from models.post import Post, PostSchema
 from models.post_like import PostLike, PostLikeSchema
@@ -99,6 +100,7 @@ class PostResource(Resource):
 
 		time_elapsed["time elapsed checkpoint 2"] = timer() - start
 		current_app.logger.debug("time elapsed 2: %s", time_elapsed["time elapsed checkpoint 2"])
+
 		#Post.add(post)
 		try:
 			db.session.add(post)
@@ -106,7 +108,22 @@ class PostResource(Resource):
 			time_elapsed["time elapsed checkpoint 3"] = timer() - start
 			current_app.logger.debug("time elapsed 3: %s", time_elapsed["time elapsed checkpoint 3"])
 			#db.session.flush()
+			hashtags = data.get("hashtags")
+			if hashtags:
+				hashtags = "# " + hashtags.lower() # prepend '#' or else might mistake the first word as a hashtag
+				hashtags = ['#' + hashtag.split(" ")[0] for hashtag in hashtags.split("#") if hashtag.split(" ") and hashtag.split(" ")[0]]
+				all_hashtags = []
+				for hashtag in hashtags:
+					existing_hashtag = Hashtag.query.filter_by(hashtag=hashtag).first()
+					if not existing_hashtag:
+						existing_hashtag = Hashtag(hashtag=hashtag)
+						db.session.add(existing_hashtag)
+						db.session.commit()
 
+					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
+					db.session.add(new_post_hashtag)
+
+			db.session.commit()
 		except Exception as e:
 			print(e)
 			return {'status': 'failure'}, 500

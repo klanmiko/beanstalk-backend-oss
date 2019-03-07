@@ -6,6 +6,7 @@ from resources.demo import Demo
 from resources.user import *
 from resources.post import *
 from resources.home import *
+from resources.hashtag import *
 from resources.photos import photos
 
 api_bp = Blueprint('api', __name__)
@@ -30,6 +31,7 @@ api.add_resource(PostItemCommentItemResource, '/Post/<pid>/comment/<comment_id>'
 
 api.add_resource(FollowingPosts, '/User/Home')
 api.add_resource(UserSearchResource, '/User/search')
+api.add_resource(HashtagResource, '/Hashtag')
 
 app = Flask(__name__)
 app.config.from_object(Config)
