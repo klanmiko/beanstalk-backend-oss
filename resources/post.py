@@ -111,7 +111,7 @@ class PostResource(Resource):
 			hashtags = data.get("hashtags")
 			if hashtags:
 				hashtags = "# " + hashtags.lower() # prepend '#' or else might mistake the first word as a hashtag
-				hashtags = ['#' + hashtag.split(" ")[0] for hashtag in hashtags.split("#") if hashtag.split(" ") and hashtag.split(" ")[0]]
+				hashtags = ['#' + hashtag.split(" ")[0] for hashtag in hashtags.split("#") if hashtag.split(" ")[0]]
 				all_hashtags = []
 				for hashtag in hashtags:
 					existing_hashtag = Hashtag.query.filter_by(hashtag=hashtag).first()
