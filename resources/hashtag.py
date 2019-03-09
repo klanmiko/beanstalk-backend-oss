@@ -58,31 +58,37 @@ class HashtagResource(Resource):
 			if not hashtag:
 				return {'message': 'Hashtag does not exist'}, 400
 
-			like_exists = db.session.query(PostLike).join(Post, Post.pid==PostLike.pid).filter(PostLike.uid == auth_user.id).subquery()
-
 			# adapting Klan's home query cuz idk what's going on
 			# removed join with follow table and added join with posthashtag table
 			# TODO: should we prioritize posts with hashtags from followers first?
-			posts = db.session.query(Post, func.count(PostLike.uid), User.username, like_exists.c.pid) \
-			.join(User, User.id == Post.uid) \
-			.outerjoin(PostLike, PostLike.pid == Post.pid) \
-			.join(PostHashtag, (PostHashtag.hashtag_id == hashtag.id) & (PostHashtag.post_id == Post.pid)) \
-			.outerjoin(like_exists, like_exists.c.pid==Post.pid) \
-			.group_by(Post, User.username, like_exists.c.pid) \
-			.order_by(Post.time_posted.desc()) \
-			.all()
+			posts = db.session.query(Post).join(PostHashtag, (PostHashtag.hashtag_id == hashtag.id) & (PostHashtag.post_id == Post.pid)).order_by(Post.time_posted.desc()).all()
 
-			def count_likes(tuple):
-			  post = mapPost(tuple[0])
-			  like = tuple[1]
-			  user = tuple[2]
-			  post['num_likes'] = like
-			  post['user'] = user
-			  post['like'] = True if tuple[3] is not None else False
-			  return post
+			# If we display like a feed similar to home page, then we need to do the below query:
+			# like_exists = db.session.query(PostLike).join(Post, Post.pid==PostLike.pid).filter(PostLike.uid == auth_user.id).subquery()
+			# posts = db.session.query(Post, func.count(PostLike.uid), User.username, like_exists.c.pid) \
+			# .join(User, User.id == Post.uid) \
+			# .outerjoin(PostLike, PostLike.pid == Post.pid) \
+			# .join(PostHashtag, (PostHashtag.hashtag_id == hashtag.id) & (PostHashtag.post_id == Post.pid)) \
+			# .outerjoin(like_exists, like_exists.c.pid==Post.pid) \
+			# .group_by(Post, User.username, like_exists.c.pid) \
+			# .order_by(Post.time_posted.desc()) \
+			# .all()
+
+			# def count_likes(tuple):
+			# 	post = mapPost(tuple[0])
+			# 	like = tuple[1]
+			# 	user = tuple[2]
+			# 	post['num_likes'] = like
+			# 	post['user'] = user
+			# 	post['like'] = True if tuple[3] is not None else False
+			#  	return post
 
 			if posts:
-			  posts = list(map(count_likes, posts))
+				try:
+					posts = list(map(mapPost, posts))
+				except Exception as e:
+					posts = [mapPost(posts)]
+				#posts = list(map(count_likes, posts))
 
 			return {'status': 'success', 'data': posts}, 200
 
