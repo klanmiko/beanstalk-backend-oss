@@ -9,6 +9,7 @@ from models.user import *
 from models.follow import *
 from models.post import *
 from models.hashtag import *
+from models.location import *
 from resources.util import mapPost, mapBinaryImage
 
 users_schema = UserSchema(many=True)
@@ -23,6 +24,8 @@ follow_schema = FollowSchema()
 search_users_schema = SearchUserSchema(many=True)
 hashtag_schema = HashtagSchema()
 hashtags_schema = HashtagSchema(many=True)
+location_schema = LocationSchema()
+locations_schema = LocationSchema(many=True)
 
 class UserResource(Resource):
 	def get(self):
@@ -411,12 +414,16 @@ class UserSearchResource(Resource):
 
 		query = str(args['query'])
 
-		users = User.query.filter(User.username.like(query + "%")).all()
+		users = User.query.filter(User.username.ilike(query + "%")).all()
 		users = search_users_schema.dump(users).data
 
-		hashtags = Hashtag.query.filter(Hashtag.hashtag.like("#" + query + "%")).all()
+		hashtags = Hashtag.query.filter(Hashtag.hashtag.ilike("#" + query + "%")).all()
 		hashtags = hashtags_schema.dump(hashtags).data
 
-		response = users + hashtags
+		locations = Location.query.filter(Location.place_name.ilike(query + "%")).all()
+		locations = locations_schema.dump(locations).data
+		locations = [{"id": location["id"], "place_name": location["place_name"]} for location in locations]
+
+		response = users + hashtags + locations
 
 		return {'status': 'success', 'data': response}, 200

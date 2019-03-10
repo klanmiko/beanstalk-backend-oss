@@ -125,16 +125,17 @@ class PostResource(Resource):
 					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
 					db.session.add(new_post_hashtag)
 
-			latitude = data.get("latitude")
-			longitude = data.get("longitude")
-			if latitude and longitude:
+			place_name = data.get("placeName")
+			latitude = data.get("lat")
+			longitude = data.get("long")
+			if place_name and latitude and longitude:
 				try:
 					latitude = Decimal(latitude)
 					longitude = Decimal(longitude)
 				except:
 					return {'message': 'latitude or longitude cannot be converted to decimal type'}, 401
 
-				location = Location(pid=post.pid, latitude=latitude, longitude=longitude)
+				location = Location(pid=post.pid, place_name=place_name, latitude=latitude, longitude=longitude)
 				db.session.add(location)
 
 			db.session.commit()

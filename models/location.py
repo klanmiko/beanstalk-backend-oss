@@ -12,8 +12,10 @@ ma = Marshmallow()
 class Location(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	pid = db.Column(db.ForeignKey('post.pid', ondelete="CASCADE"), unique=True, nullable=False)
+	place_name = db.Column(db.String(120), nullable=False)
 	latitude = db.Column(db.Numeric(10, 8), nullable=False)
 	longitude = db.Column(db.Numeric(11, 8), nullable=False)
+
 	# gps = db.Column(db.Integer)
 	# city = db.Column(db.String(30))
 	# country = db.Column(db.String(30))
@@ -24,6 +26,7 @@ class Location(db.Model):
 class LocationSchema(ma.Schema):
 	id = fields.Integer()
 	pid = fields.Integer()
+	place_name = fields.String()
 	latitude = fields.Decimal()
 	longitude = fields.Decimal()
 
