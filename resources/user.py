@@ -207,11 +207,13 @@ class UserProfileResource(Resource):
 		except Exception:
 			return {'message': 'User does not exist'}, 400
 
-		(posts, locations) = db.session.query(Post, Location) \
+		r = db.session.query(Post, Location) \
 		.filter(Post.uid == user.id) \
 		.outerjoin(Location, Location.id == Post.lid) \
 		.order_by(Post.time_posted.desc()) \
 		.all()
+
+		(posts, locations) = zip(*r)
 
 		if posts:
 			try:
