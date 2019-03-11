@@ -124,7 +124,9 @@ class PostResource(Resource):
 
 					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
 					db.session.add(new_post_hashtag)
-			post.hashtags = " ".join(hashtags)
+			hashtags = (" ").join(hashtags)
+			print(hashtags)
+			post.hashtags = hashtags
 			place_name = data.get("placeName")
 			latitude = data.get("lat")
 			longitude = data.get("long")
