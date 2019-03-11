@@ -11,6 +11,7 @@ ma = Marshmallow()
 class Post(db.Model):
 	pid = db.Column(db.Integer, primary_key=True)
 	uid = db.Column(db.ForeignKey('user.id', ondelete="SET NULL"))
+	lid = db.Column(db.ForeignKey('location.id'), nullable=False)
 	time_posted = db.Column(db.DateTime, nullable=False)
 	photo = db.Column(db.BINARY(16), nullable=False)
 	caption = db.Column(db.String(300), nullable=False)
@@ -19,6 +20,7 @@ class Post(db.Model):
 class PostSchema(ma.Schema):
 	pid = fields.Integer()
 	uid = fields.Integer()
+	lid = fields.Integer()
 	time_posted = fields.DateTime()
 	photo = fields.Raw()
 	caption = fields.String()

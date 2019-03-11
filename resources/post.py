@@ -125,7 +125,6 @@ class PostResource(Resource):
 					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
 					db.session.add(new_post_hashtag)
 			hashtags = (" ").join(hashtags)
-			print(hashtags)
 			post.hashtags = hashtags
 			place_name = data.get("placeName")
 			latitude = data.get("lat")
@@ -136,6 +135,8 @@ class PostResource(Resource):
 					longitude = Decimal(longitude)
 					location = Location(pid=post.pid, place_name=place_name, latitude=latitude, longitude=longitude)
 					db.session.add(location)
+					db.session.flush()
+					post.lid = location.id
 				except:
 					pass
 
@@ -242,8 +243,9 @@ class PostItemResource(Resource):
 
 		like_exists = db.session.query(PostLike).join(Post, Post.pid==PostLike.pid).filter(PostLike.uid == auth_user.id).subquery()
 
-		(post, likes, user, is_liked) = db.session.query(Post, func.count(PostLike.uid), User, like_exists.c.pid) \
+		(post, likes, user, is_liked, location) = db.session.query(Post, func.count(PostLike.uid), User, like_exists.c.pid, Location) \
 		.outerjoin(PostLike, PostLike.pid == Post.pid) \
+		.outerjoin(Location, Location.pid == Post.pid) \
 		.join(User, User.id == Post.uid) \
 		.outerjoin(like_exists, like_exists.c.pid == Post.pid) \
 		.filter(Post.pid==pid) \
@@ -263,6 +265,8 @@ class PostItemResource(Resource):
 			print(e)
 
 		result["like"] = True if is_liked is not None else False
+
+		result['location'] = location_schema.dump(location).data
 
 		r = db.session.query(Comment, func.count(CommentLike.uid), User.username) \
 		.join(User, User.id == Comment.uid) \
