@@ -249,7 +249,7 @@ class PostItemResource(Resource):
 		.join(User, User.id == Post.uid) \
 		.outerjoin(like_exists, like_exists.c.pid == Post.pid) \
 		.filter(Post.pid==pid) \
-		.group_by(Post, User, like_exists.c.pid) \
+		.group_by(Post, User, like_exists.c.pid, Location) \
 		.first()
 
 		if not post:
