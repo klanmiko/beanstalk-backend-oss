@@ -53,7 +53,14 @@ class LocationResource(Resource):
 			if not location:
 				return {'message': 'Location does not exist'}, 400
 
-			response = location_schema.dump(location).data
+			posts = db.session.query(Post).filter_by(lid=location.id).order_by(Post.time_posted.desc()).all()
+			if posts:
+				try:
+					posts = list(map(mapPost, posts))
+				except Exception as e:
+					posts = [mapPost(posts)]
+
+			return {'status': 'success', 'data': posts}, 200
 
 		locations = Location.query.all()
 		response = locations_schema.dump(locations).data
