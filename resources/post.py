@@ -132,11 +132,10 @@ class PostResource(Resource):
 				try:
 					latitude = Decimal(latitude)
 					longitude = Decimal(longitude)
+					location = Location(pid=post.pid, place_name=place_name, latitude=latitude, longitude=longitude)
+					db.session.add(location)
 				except:
-					return {'message': 'latitude or longitude cannot be converted to decimal type'}, 401
-
-				location = Location(pid=post.pid, place_name=place_name, latitude=latitude, longitude=longitude)
-				db.session.add(location)
+					pass
 
 			db.session.commit()
 		except Exception as e:
