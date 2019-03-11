@@ -215,6 +215,8 @@ class UserProfileResource(Resource):
 
 		(posts, locations) = zip(*r)
 
+		locations = list(filter(None, locations))
+
 		if posts:
 			try:
 				posts = list(map(mapPost, posts))
