@@ -207,7 +207,11 @@ class UserProfileResource(Resource):
 		except Exception:
 			return {'message': 'User does not exist'}, 400
 
-		posts = db.session.query(Post).filter(Post.uid == user.id).order_by(Post.time_posted.desc()).all()
+		(posts, locations) = db.session.query(Post, Location) \
+		.filter(Post.uid == user.id) \
+		.outerjoin(Location, Location.id == Post.lid) \
+		.order_by(Post.time_posted.desc()) \
+		.all()
 
 		if posts:
 			try:
@@ -241,6 +245,7 @@ class UserProfileResource(Resource):
 			'followers': followers,
 			'isFollowing': follow_schema.dump(isFollowing).data if isFollowing else False,
 			'posts': posts,
+			'locations': locations_schema.dump(locations).data,
 			'num_posts': len(posts)
 			}}, 200
 
