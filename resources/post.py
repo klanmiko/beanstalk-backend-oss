@@ -17,6 +17,7 @@ from models.post import Post, PostSchema
 from models.post_like import PostLike, PostLikeSchema
 from models.comment import Comment, CommentSchema
 from models.comment_like import CommentLike, CommentLikeSchema
+from models.notification import Notification, NotificationSchema
 from models.shared import db
 
 from resources.util import mapPost, mapBinaryImage
@@ -187,11 +188,21 @@ class PostLikeResource(Resource):
 		if not auth_user:
 			return {'message': 'Auth token does not correspond to existing user'}, 400
 
+		post = Post.query.filter_by(pid=pid).first()
+		if not post:
+			return {'message': 'Post does not exist'}, 400
+
 		try:
-			post_like = PostLike(pid=pid, uid=auth_user.id, timestamp=datetime.datetime.utcnow())
+			timestamp = datetime.datetime.utcnow()
+			post_like = PostLike(pid=pid, uid=auth_user.id, timestamp=timestamp)
 			db.session.add(post_like)
 			db.session.commit()
-		
+
+			notification = Notification(uid=post.uid, message="{username} liked your post.".format(username=auth_user.username),
+										notif_type="L", link=pid, timestamp=timestamp)
+			db.session.add(notification)
+			db.session.commit()
+
 		except Exception:
 			return {'message': 'User already liked post'}, 400
 
@@ -435,9 +446,15 @@ class PostItemCommentResource(Resource):
 		if errors:
 			return errors, 422
 
-		comment = Comment(pid=post.pid, uid=auth_user.id, comment=data['comment'], timestamp=datetime.datetime.utcnow())
+		timestamp = datetime.datetime.utcnow()
 
+		comment = Comment(pid=post.pid, uid=auth_user.id, comment=data['comment'], timestamp=timestamp)
 		db.session.add(comment)
+		db.session.commit()
+
+		notification = Notification(uid=post.uid, message="{username} commented on your post.".format(username=auth_user.username),
+									notif_type="C", link=pid, timestamp=timestamp)
+		db.session.add(notification)
 		db.session.commit()
 
 		#TODO add hashtag and location stuff

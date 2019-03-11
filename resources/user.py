@@ -10,6 +10,7 @@ from models.follow import *
 from models.post import *
 from models.hashtag import *
 from models.location import *
+from models.notification import *
 from resources.util import mapPost, mapBinaryImage
 
 users_schema = UserSchema(many=True)
@@ -26,6 +27,8 @@ hashtag_schema = HashtagSchema()
 hashtags_schema = HashtagSchema(many=True)
 location_schema = LocationSchema()
 locations_schema = LocationSchema(many=True)
+notification_schema = NotificationSchema()
+notifications_schema = NotificationSchema(many=True)
 
 class UserResource(Resource):
 	def get(self):
@@ -436,3 +439,28 @@ class UserSearchResource(Resource):
 		response = users + hashtags + locations
 
 		return {'status': 'success', 'data': response}, 200
+
+class NotificationResource(Resource):
+	def get(self):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+
+		auth_user = User.query.filter_by(id=resp).first()
+		if not auth_user:
+			return {'message': 'Auth token does not correspond to existing user'}, 400
+
+		notifications = Notification.query.filter_by(uid=auth_user.id).order_by(Notification.timestamp.asc()).all()
+		notifications = notifications_schema.dump(notifications).data
+
+		return {'status': 'success', 'data': notifications}, 200
