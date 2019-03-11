@@ -7,6 +7,7 @@ from resources.user import *
 from resources.post import *
 from resources.home import *
 from resources.hashtag import *
+from resources.location import *
 from resources.photos import photos
 
 api_bp = Blueprint('api', __name__)
@@ -34,6 +35,7 @@ api.add_resource(PostLocationResource, '/Post/<pid>/location')
 api.add_resource(FollowingPosts, '/User/Home')
 api.add_resource(UserSearchResource, '/User/search')
 api.add_resource(HashtagResource, '/Hashtag')
+api.add_resource(LocationResource, '/Location')
 
 
 app = Flask(__name__)
