@@ -109,36 +109,43 @@ class PostResource(Resource):
 			db.session.flush()
 			time_elapsed["time elapsed checkpoint 3"] = timer() - start
 			current_app.logger.debug("time elapsed 3: %s", time_elapsed["time elapsed checkpoint 3"])
-			#db.session.flush()
-			hashtags = data.get("hashtags")
-			if hashtags:
-				hashtags = "# " + hashtags.lower() # prepend '#' or else might mistake the first word as a hashtag
-				hashtags = ['#' + hashtag.split(" ")[0] for hashtag in hashtags.split("#") if hashtag.split(" ")[0]]
-				all_hashtags = []
-				for hashtag in hashtags:
-					existing_hashtag = Hashtag.query.filter_by(hashtag=hashtag).first()
-					if not existing_hashtag:
-						existing_hashtag = Hashtag(hashtag=hashtag)
-						db.session.add(existing_hashtag)
-						db.session.commit()
 
-					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
-					db.session.add(new_post_hashtag)
+			hashtags = data.get("hashtags")
+			if not hashtags:
+				return {'message': 'No hashtag(s) provided'}, 401
+
+			hashtags = "# " + hashtags.lower() # prepend '#' or else might mistake the first word as a hashtag
+			hashtags = ['#' + hashtag.split(" ")[0] for hashtag in hashtags.split("#") if hashtag.split(" ")[0]]
+			all_hashtags = []
+			for hashtag in hashtags:
+				existing_hashtag = Hashtag.query.filter_by(hashtag=hashtag).first()
+				if not existing_hashtag:
+					existing_hashtag = Hashtag(hashtag=hashtag)
+					db.session.add(existing_hashtag)
+					db.session.commit()
+
+				new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
+				db.session.add(new_post_hashtag)
 			hashtags = (" ").join(hashtags)
 			post.hashtags = hashtags
+
 			place_name = data.get("placeName")
 			latitude = data.get("lat")
 			longitude = data.get("long")
-			if place_name and latitude and longitude:
-				try:
+			if not (place_name and latitude and longitude):
+				return {'message': 'No location provided or location info incomplete'}, 401
+
+			try:
+				existing_location = Location.query.filter_by(place_name=place_name).first()
+				if not existing_location:
 					latitude = Decimal(latitude)
 					longitude = Decimal(longitude)
-					location = Location(pid=post.pid, place_name=place_name, latitude=latitude, longitude=longitude)
-					db.session.add(location)
+					existing_location = Location(place_name=place_name, latitude=latitude, longitude=longitude)
+					db.session.add(existing_location)
 					db.session.flush()
-					post.lid = location.id
-				except:
-					pass
+				post.lid = existing_location.id
+			except Exception as e:
+				return {'message': str(e)}, 401
 
 			db.session.commit()
 		except Exception as e:
@@ -268,6 +275,8 @@ class PostItemResource(Resource):
 
 		if location: 
 			result['location'] = location_schema.dump(location).data
+			result['location']['latitude'] = str(result['location']['latitude'])
+			result['location']['longitude'] = str(result['location']['longitude'])
 
 		r = db.session.query(Comment, func.count(CommentLike.uid), User.username) \
 		.join(User, User.id == Comment.uid) \
