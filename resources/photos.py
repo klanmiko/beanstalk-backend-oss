@@ -1,4 +1,4 @@
-from flask import request, current_app, Blueprint, send_file
+from flask import request, current_app, Blueprint, send_file, jsonify
 import os
 
 _path = os.path.abspath(os.path.dirname(__file__))
