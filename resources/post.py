@@ -245,7 +245,7 @@ class PostItemResource(Resource):
 
 		(post, likes, user, is_liked, location) = db.session.query(Post, func.count(PostLike.uid), User, like_exists.c.pid, Location) \
 		.outerjoin(PostLike, PostLike.pid == Post.pid) \
-		.outerjoin(Location, Location.pid == Post.pid) \
+		.outerjoin(Location, Location.id == Post.lid) \
 		.join(User, User.id == Post.uid) \
 		.outerjoin(like_exists, like_exists.c.pid == Post.pid) \
 		.filter(Post.pid==pid) \
