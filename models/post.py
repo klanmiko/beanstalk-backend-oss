@@ -14,6 +14,7 @@ class Post(db.Model):
 	time_posted = db.Column(db.DateTime, nullable=False)
 	photo = db.Column(db.BINARY(16), nullable=False)
 	caption = db.Column(db.String(300), nullable=False)
+	hashtags = db.Column(db.String(200))
 
 class PostSchema(ma.Schema):
 	pid = fields.Integer()
@@ -21,6 +22,7 @@ class PostSchema(ma.Schema):
 	time_posted = fields.DateTime()
 	photo = fields.Raw()
 	caption = fields.String()
+	hashtags = fields.String()
 
 	def __repr__(self):
 		return '<Post>'

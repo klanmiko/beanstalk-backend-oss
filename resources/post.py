@@ -106,7 +106,7 @@ class PostResource(Resource):
 		#Post.add(post)
 		try:
 			db.session.add(post)
-			db.session.commit()
+			db.session.flush()
 			time_elapsed["time elapsed checkpoint 3"] = timer() - start
 			current_app.logger.debug("time elapsed 3: %s", time_elapsed["time elapsed checkpoint 3"])
 			#db.session.flush()
@@ -124,7 +124,7 @@ class PostResource(Resource):
 
 					new_post_hashtag = PostHashtag(post_id=post.pid, hashtag_id=existing_hashtag.id)
 					db.session.add(new_post_hashtag)
-
+			post.hashtags = " ".join(hashtags)
 			place_name = data.get("placeName")
 			latitude = data.get("lat")
 			longitude = data.get("long")
@@ -141,6 +141,7 @@ class PostResource(Resource):
 			db.session.commit()
 		except Exception as e:
 			print(e)
+			db.session.rollback()
 			return {'status': 'failure'}, 500
 
 		#TODO add hashtag and location stuff
@@ -267,7 +268,7 @@ class PostItemResource(Resource):
 		.outerjoin(CommentLike, CommentLike.comment_id == Comment.comment_id) \
 		.filter(Comment.pid==post.pid) \
 		.group_by(Comment, User.username) \
-		.order_by(Comment.timestamp.desc()) \
+		.order_by(Comment.timestamp.asc()) \
 		.all()
 
 		try:
@@ -282,7 +283,7 @@ class PostItemResource(Resource):
 		except Exception:
 			# probably doesn't have comments
 			pass
-		# TODO actually encode this response
+		
 		return result, 200
 
 	# update the post's caption (DONE)
@@ -379,7 +380,7 @@ class PostItemCommentResource(Resource):
 		if not auth_user:
 			return {'message': 'Auth token does not correspond to existing user'}, 400
 
-		comments = Comment.query.filter_by(pid=pid).all()
+		comments = Comment.query.filter_by(pid=pid).order_by(Comment.timestamp.asc()).all()
 		comments = comments_schema.dump(comments).data
 
 		for comment in comments:
