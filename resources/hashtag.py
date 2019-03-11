@@ -54,7 +54,7 @@ class HashtagResource(Resource):
 		elif "hashtag" in args:
 			query = str(args["hashtag"])
 
-			hashtag = Hashtag.query.filter_by(hashtag="#"+query).first()
+			hashtag = Hashtag.query.filter_by(hashtag=query).first()
 			if not hashtag:
 				return {'message': 'Hashtag does not exist'}, 400
 
