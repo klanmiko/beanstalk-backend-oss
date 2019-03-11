@@ -12,4 +12,9 @@ photos = Blueprint('photos', __name__)
 
 @photos.route('/<photo>', methods=['GET'])
 def getPhoto(photo):
-  return send_file(os.path.join(photo_dir, photo))
+  try:
+    return send_file(os.path.join(photo_dir, photo))
+  except Exception as e:
+    res = jsonify({'status': 'failure', 'message': 'photo does not exit'})
+    res.status_code = 404
+    return res
