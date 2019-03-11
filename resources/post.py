@@ -266,7 +266,8 @@ class PostItemResource(Resource):
 
 		result["like"] = True if is_liked is not None else False
 
-		result['location'] = location_schema.dump(location).data
+		if location: 
+			result['location'] = location_schema.dump(location).data
 
 		r = db.session.query(Comment, func.count(CommentLike.uid), User.username) \
 		.join(User, User.id == Comment.uid) \
