@@ -341,9 +341,15 @@ class UserFollowResource(Resource):
 			}
 			return response, 401
 		auth_user = User.query.filter_by(id=resp).first()
-		followRelationship = Follow(follower_uid=resp, following_uid=user.id, timestamp=datetime.datetime.now(), request=1)
+		timestamp = datetime.datetime.now()
+		followRelationship = Follow(follower_uid=resp, following_uid=user.id, timestamp=timestamp, request=1)
 		try:
 			db.session.add(followRelationship)
+			db.session.flush()
+
+			notification = Notification(uid=user.id, message="{username} followed you.".format(username=auth_user.username),
+										notif_type="F", link=auth_user.username, timestamp=timestamp)
+			db.session.add(notification)
 			db.session.flush()
 		except Exception as e:
 			print(e)

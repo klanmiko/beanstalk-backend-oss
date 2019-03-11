@@ -196,7 +196,7 @@ class PostLikeResource(Resource):
 			timestamp = datetime.datetime.utcnow()
 			post_like = PostLike(pid=pid, uid=auth_user.id, timestamp=timestamp)
 			db.session.add(post_like)
-			db.session.commit()
+			db.session.flush()
 
 			notification = Notification(uid=post.uid, message="{username} liked your post.".format(username=auth_user.username),
 										notif_type="L", link=pid, timestamp=timestamp)
@@ -450,7 +450,7 @@ class PostItemCommentResource(Resource):
 
 		comment = Comment(pid=post.pid, uid=auth_user.id, comment=data['comment'], timestamp=timestamp)
 		db.session.add(comment)
-		db.session.commit()
+		db.session.flush()
 
 		notification = Notification(uid=post.uid, message="{username} commented on your post.".format(username=auth_user.username),
 									notif_type="C", link=pid, timestamp=timestamp)
