@@ -25,8 +25,8 @@ class Location(db.Model):
 class LocationSchema(ma.Schema):
 	id = fields.Integer()
 	place_name = fields.String()
-	latitude = fields.Decimal()
-	longitude = fields.Decimal()
+	latitude = fields.String()
+	longitude = fields.String()
 
 	def __repr__(self):
 		return '<LocationSchema>'
