@@ -284,7 +284,7 @@ class PostItemResource(Resource):
 
 		result["like"] = True if is_liked is not None else False
 
-		if location: 
+		if location:
 			result['location'] = location_schema.dump(location).data
 			result['location']['latitude'] = str(result['location']['latitude'])
 			result['location']['longitude'] = str(result['location']['longitude'])
