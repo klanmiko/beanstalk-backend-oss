@@ -466,7 +466,7 @@ class NotificationResource(Resource):
 		if not auth_user:
 			return {'message': 'Auth token does not correspond to existing user'}, 400
 
-		notifications = Notification.query.filter_by(uid=auth_user.id).order_by(Notification.timestamp.asc()).all()
+		notifications = Notification.query.filter_by(uid=auth_user.id).order_by(Notification.timestamp.desc()).all()
 		notifications = notifications_schema.dump(notifications).data
 
 		return {'status': 'success', 'data': notifications}, 200
