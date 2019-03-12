@@ -42,18 +42,23 @@ class LocationResource(Resource):
 
 		args = request.args
 
-		if "username" in args:
-			pass
-		elif "pid" in args:
-			pass
-		elif "id" in args:
+		if "id" in args:
 			query = args["id"]
 
 			location = Location.query.filter_by(id=query).first()
 			if not location:
 				return {'message': 'Location does not exist'}, 400
 
-			posts = db.session.query(Post).filter_by(lid=location.id).order_by(Post.time_posted.desc()).all()
+			if "username" in args:
+				username = args["username"]
+				user = User.query.filter_by(username=username).first()
+				if not user:
+					return {'message': 'Username does not correspond to existing user'}, 400
+
+				posts = db.session.query(Post).filter_by(lid=location.id, uid=user.id).order_by(Post.time_posted.desc()).all()
+			else:
+				posts = db.session.query(Post).filter_by(lid=location.id).order_by(Post.time_posted.desc()).all()
+
 			if posts:
 				try:
 					posts = list(map(mapPost, posts))
