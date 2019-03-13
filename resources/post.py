@@ -198,9 +198,11 @@ class PostLikeResource(Resource):
 			db.session.add(post_like)
 			db.session.flush()
 
-			notification = Notification(uid=post.uid, message="{username} liked your post.".format(username=auth_user.username),
-										notif_type="L", link=pid, timestamp=timestamp)
-			db.session.add(notification)
+			if post.uid != auth_user.id:
+				notification = Notification(uid=post.uid, message="{username} liked your post.".format(username=auth_user.username),
+											notif_type="L", link=pid, timestamp=timestamp)
+				db.session.add(notification)
+				
 			db.session.commit()
 
 		except Exception:
