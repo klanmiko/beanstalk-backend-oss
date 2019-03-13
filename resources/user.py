@@ -473,7 +473,7 @@ class NotificationResource(Resource):
 
 		return {'status': 'success', 'data': notifications}, 200
 	
-class NotificationItemResource():
+class NotificationItemResource(Resource):
 	def post(self, id):
 		auth_token = request.headers.get('Authorization')
 		current_app.logger.debug("auth_token: %s", auth_token)
