@@ -470,3 +470,31 @@ class NotificationResource(Resource):
 		notifications = notifications_schema.dump(notifications).data
 
 		return {'status': 'success', 'data': notifications}, 200
+	
+class NotificationItemResource():
+	def post(self, id):
+		auth_token = request.headers.get('Authorization')
+		current_app.logger.debug("auth_token: %s", auth_token)
+
+		if not auth_token:
+			return {'message': 'No Authorization token'}, 401
+
+		resp = User.decode_auth_token(auth_token)
+		if isinstance(resp, str):
+			response = {
+				'status': 'fail',
+				'message': resp
+			}
+			return response, 401
+
+		auth_user = User.query.filter_by(id=resp).first()
+		if not auth_user:
+			return {'message': 'Auth token does not correspond to existing user'}, 400
+		
+		try:
+			db.session.query(Notification).filter(Notification.id == id, Notification.uid == auth_user.id).update({'read': True})
+			db.session.commit()
+		except Exception as e:
+			return {'message': 'Notification does not correspond with that user'}, 403
+		
+		return {'status': 'success'}, 200

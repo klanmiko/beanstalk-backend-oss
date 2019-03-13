@@ -14,6 +14,7 @@ class Notification(db.Model):
 	message = db.Column(db.String(300), nullable=False)
 	notif_type = db.Column(db.String(1), nullable=False)
 	link = db.Column(db.String(64), nullable=False)
+	read = db.Column(db.Boolean, default=False, nullable=False)
 	timestamp = db.Column(db.DateTime, nullable=False)
 
 class NotificationSchema(ma.Schema):
@@ -23,3 +24,4 @@ class NotificationSchema(ma.Schema):
 	notif_type = fields.String()
 	link = fields.String()
 	timestamp = fields.DateTime()
+	read = fields.Boolean()

@@ -34,6 +34,8 @@ api.add_resource(PostLocationResource, '/Post/<pid>/location')
 
 api.add_resource(FollowingPosts, '/User/Home')
 api.add_resource(NotificationResource, '/User/Notification')
+api.add_resource(NotificationItemResource, '/User/Notification/<id>')
+
 api.add_resource(UserSearchResource, '/User/search')
 api.add_resource(HashtagResource, '/Hashtag')
 api.add_resource(LocationResource, '/Location')
