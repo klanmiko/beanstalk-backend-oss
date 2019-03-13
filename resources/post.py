@@ -202,7 +202,7 @@ class PostLikeResource(Resource):
 				notification = Notification(uid=post.uid, message="{username} liked your post.".format(username=auth_user.username),
 											notif_type="L", link=pid, timestamp=timestamp)
 				db.session.add(notification)
-				
+
 			db.session.commit()
 
 		except Exception:
@@ -454,9 +454,11 @@ class PostItemCommentResource(Resource):
 		db.session.add(comment)
 		db.session.flush()
 
-		notification = Notification(uid=post.uid, message="{username} commented on your post.".format(username=auth_user.username),
-									notif_type="C", link=pid, timestamp=timestamp)
-		db.session.add(notification)
+		if post.uid != auth_user.id:
+			notification = Notification(uid=post.uid, message="{username} commented on your post.".format(username=auth_user.username),
+										notif_type="C", link=pid, timestamp=timestamp)
+			db.session.add(notification)
+			
 		db.session.commit()
 
 		#TODO add hashtag and location stuff
