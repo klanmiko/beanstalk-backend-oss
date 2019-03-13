@@ -442,7 +442,7 @@ class UserSearchResource(Resource):
 		locations = locations_schema.dump(locations).data
 		for location in locations:
 			location["latitude"] = str(location["latitude"])
-			location["latitude"] = str(location["longitude"])
+			location["longitude"] = str(location["longitude"])
 
 		response = users + hashtags + locations
 
