@@ -440,7 +440,9 @@ class UserSearchResource(Resource):
 
 		locations = Location.query.filter(Location.place_name.ilike(query + "%")).all()
 		locations = locations_schema.dump(locations).data
-		locations = [{"id": location["id"], "place_name": location["place_name"]} for location in locations]
+		for location in locations:
+			location["latitude"] = str(location["latitude"])
+			location["latitude"] = str(location["longitude"])
 
 		response = users + hashtags + locations
 
