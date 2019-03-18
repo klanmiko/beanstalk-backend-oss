@@ -15,10 +15,10 @@ Make sure you have a postgreSQL instance set up and running. Here is a good reso
 First set up a virtualenv and install requirements
 
 ```
-virtualenv venv
-source venv/bin/activate # (unix)
-venv\Scripts\activate # (windows)
-pip3 install -r requirements.txt
+$ virtualenv venv
+$ source venv/bin/activate # (unix)
+$ venv\Scripts\activate # (windows)
+$ pip3 install -r requirements.txt
 ```
 Next you need to setup config.py:
 
