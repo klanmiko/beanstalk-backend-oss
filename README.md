@@ -21,6 +21,20 @@ $ venv\Scripts\activate # (windows)
 $ pip3 install -r requirements.txt
 ```
 Next you need to setup config.py:
+```{python
+import os
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+class Config(object):
+	SECRET_KEY = os.environ.get('SECRET_KEY') or 'my_secret_key'
+	SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+		'postgresql+psycopg2://{user}:{pw}@{url}/{db}'.format(user="user",pw="password",url="url",db="db")
+	SQLALCHEMY_TRACK_MODIFICATIONS = False
+	SQLALCHEMY_ECHO = False
+```
+
+Make sure to set the db url, name, username, and password
 
 # Running
 ```
