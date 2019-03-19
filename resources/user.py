@@ -216,15 +216,21 @@ class UserProfileResource(Resource):
 		.order_by(Post.time_posted.desc()) \
 		.all()
 
-		(posts, locations) = zip(*r)
+		posts = []
+		locations = []
 
-		locations = list(filter(None, locations))
+		try:
+			(posts, locations) = zip(*r)
 
-		if posts:
-			try:
-				posts = list(map(mapPost, posts))
-			except Exception as e:
-				posts = [mapPost(posts)]
+			locations = list(filter(None, locations))
+
+			if posts:
+				try:
+					posts = list(map(mapPost, posts))
+				except Exception as e:
+					posts = [mapPost(posts)]
+		except:
+			pass
 
 		resp = User.decode_auth_token(auth_token)
 		if isinstance(resp, str):
