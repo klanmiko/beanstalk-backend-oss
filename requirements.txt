@@ -30,7 +30,7 @@ pylint==1.9.2
 -e git+https://github.com/klanmiko/pyserial.git@fca918defddae5ecd1dc48dba0894717e33f8903#egg=pyserial
 python-dotenv==0.10.1
 pytz==2018.9
-requests==2.20.0
+requests==2.22.0
 six==1.12.0
 SQLAlchemy==1.2.17
 url-normalize==1.3.3
