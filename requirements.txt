@@ -25,7 +25,7 @@ marshmallow-sqlalchemy==0.15.0
 mccabe==0.6.1
 psycopg2==2.7.7
 pycparser==2.19
-PyJWT==1.7.1
+PyJWT==2.4.0
 pylint==1.9.2
 -e git+https://github.com/klanmiko/pyserial.git@fca918defddae5ecd1dc48dba0894717e33f8903#egg=pyserial
 python-dotenv==0.10.1
